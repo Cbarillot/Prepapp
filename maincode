@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Atelier Pédagogique 5ème — Projets d'Apprentissage & Séances</title>
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@0.468.0"></script>
 
   <style>
     :root {
@@ -113,79 +113,140 @@
         max-width: 100% !important;
       }
     }
+
+    /* Système visuel accessible : ambre comme accent, les dominantes gardent leur code fixe. */
+    :root {
+      --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+      --space-5: 24px; --space-6: 32px;
+      --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+      --shadow-soft: 0 1px 2px rgb(28 25 23 / .06), 0 8px 24px rgb(28 25 23 / .06);
+      --text-muted: #57534e;
+      --focus-ring: 0 0 0 3px rgb(245 158 11 / .35);
+    }
+    * { box-sizing: border-box; }
+    body { font-size: 13px; letter-spacing: .005em; }
+    button, input, select, textarea { font: inherit; }
+    button, [role="button"], summary, a, label { min-height: 36px; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible,
+    [contenteditable="true"]:focus-visible, summary:focus-visible, a:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: var(--focus-ring);
+    }
+    .theme-card { border-radius: var(--radius-md); box-shadow: var(--shadow-soft); }
+    .rich-editor { font-size: 16px; line-height: 1.65; max-width: 72ch; }
+    .rich-editor p, .rich-editor li { max-width: 72ch; }
+    .text-\[10px\] { font-size: 12px !important; }
+    .text-\[11px\] { font-size: 12px !important; }
+    .text-xs { font-size: 13px !important; }
+    .text-\[10px\].font-bold, .text-\[11px\].font-bold { letter-spacing: .06em; }
+    .theme-accent-btn { min-height: 40px; font-weight: 700; }
+    .resizer { width: 8px; }
+    #left-sidebar, #right-sidebar { transition: transform .18s ease, box-shadow .18s ease; }
+    #left-sidebar { z-index: 35; }
+    #right-sidebar { z-index: 35; }
+    #editor-viewport { background: var(--bg-main); }
+    #workspace-tabs-header { min-height: 48px; }
+    .editor-toolbar { position: sticky; top: 0; z-index: 8; }
+    .status-warning { color: #b45309 !important; }
+    .status-ok { color: #047857 !important; }
+    .status-done { color: #047857; background: #d1fae5; }
+    .status-ready { color: #166534; background: #dcfce7; }
+    .status-progress { color: #b45309; background: #fef3c7; }
+    .status-todo { color: #57534e; background: #e7e5e4; }
+    .command-palette { width: min(620px, calc(100vw - 32px)); }
+    .class-mode #left-sidebar, .class-mode #right-sidebar, .class-mode #resizer-left, .class-mode #resizer-right,
+    .class-mode header, .class-mode #workspace-tabs-header, .class-mode .no-print { display: none !important; }
+    .class-mode #main-workspace { width: 100%; }
+    .class-mode #editor-viewport { padding: clamp(24px, 6vw, 72px); font-size: 19px; }
+    .class-mode #editor-viewport .rich-editor { font-size: 20px; max-width: 76ch; }
+    .toast { animation: toast-in .18s ease-out; }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg-main: #1c1917; --bg-sidebar: #292524; --bg-card: #292524; --border-color: #44403c; --text-main: #f5f5f4; --text-muted: #d6d3d1; }
+      body { background: var(--bg-main); color: var(--text-main); }
+      .theme-card, .bg-white, .bg-stone-50, .bg-stone-100 { background-color: #292524 !important; color: #f5f5f4; }
+      input, select, textarea { color: #f5f5f4; background-color: #292524; border-color: #57534e; }
+      .text-stone-900, .text-stone-800, .text-stone-700 { color: #f5f5f4 !important; }
+      .text-stone-600, .text-stone-500, .text-stone-400 { color: #d6d3d1 !important; }
+    }
+    @media (max-width: 1023px) {
+      #left-sidebar, #right-sidebar { position: fixed; top: 56px; bottom: 0; width: min(360px, 88vw) !important; box-shadow: 0 12px 40px rgb(0 0 0 / .25); }
+      #left-sidebar { left: 0; } #right-sidebar { right: 0; }
+      #left-sidebar.is-closed { transform: translateX(-105%); display: flex !important; }
+      #right-sidebar.is-closed { transform: translateX(105%); display: flex !important; }
+      #resizer-left, #resizer-right { display: none !important; }
+      .drawer-scrim { display: block !important; }
+    }
+    .drawer-scrim { display: none; position: fixed; inset: 56px 0 0; background: rgb(28 25 23 / .48); z-index: 30; }
+    .drawer-scrim.is-visible { display: block; }
+    @media print {
+      @page { size: A4; margin: 16mm; }
+      .theme-card { break-inside: avoid; box-shadow: none !important; }
+      h1, h2, h3 { break-after: avoid; }
+    }
   </style>
 </head>
 <body class="h-screen w-screen overflow-hidden flex flex-col select-none" id="app-root">
+  <div id="drawer-scrim" class="drawer-scrim no-print" onclick="app.closeDrawers()" aria-hidden="true"></div>
+  <div id="command-palette" class="fixed inset-0 bg-black/55 z-[60] hidden items-start justify-center pt-[12vh] no-print" onclick="app.closeCommandPalette()">
+    <div class="command-palette theme-card p-4" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-label="Recherche rapide">
+      <div class="flex items-center gap-2 border-b border-stone-200 pb-2">
+        <i data-lucide="search" class="w-5 h-5 text-amber-700"></i>
+        <input id="command-search" oninput="app.renderCommandResults()" onkeydown="if(event.key==='Escape') app.closeCommandPalette()" autofocus placeholder="Rechercher une séance ou un PA..." class="flex-1 bg-transparent outline-none text-base">
+        <kbd class="text-xs text-stone-400">Échap</kbd>
+      </div>
+      <div id="command-results" class="pt-3 space-y-1 max-h-[50vh] overflow-y-auto"></div>
+    </div>
+  </div>
+  <div id="overflow-menu" class="fixed right-3 top-14 z-[55] hidden w-64 theme-card border p-2 no-print" role="menu">
+    <button onclick="app.exportJSON(); app.closeOverflowMenu()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-100 flex gap-2 items-center"><i data-lucide="download" class="w-4 h-4"></i>Exporter JSON</button>
+    <label class="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-100 flex gap-2 items-center cursor-pointer"><i data-lucide="upload" class="w-4 h-4"></i>Importer JSON<input type="file" accept=".json" onchange="app.importJSON(event); app.closeOverflowMenu()" class="hidden"></label>
+    <button onclick="app.exportActiveToDoc(); app.closeOverflowMenu()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-100 flex gap-2 items-center"><i data-lucide="file-text" class="w-4 h-4"></i>Export Word (.doc)</button>
+    <button onclick="window.print(); app.closeOverflowMenu()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-100 flex gap-2 items-center"><i data-lucide="printer" class="w-4 h-4"></i>Imprimer / PDF</button>
+    <button onclick="app.openModal('theme-modal'); app.closeOverflowMenu()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-100 flex gap-2 items-center"><i data-lucide="settings-2" class="w-4 h-4"></i>Affichage et apparence</button>
+    <button onclick="app.openModal('tags-modal'); app.closeOverflowMenu()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-100 flex gap-2 items-center"><i data-lucide="tags" class="w-4 h-4"></i>Dominantes</button>
+    <div class="border-t border-stone-200 my-1"></div>
+    <button onclick="app.confirmReset()" class="w-full text-left px-3 py-2 rounded-lg text-red-700 hover:bg-red-50 flex gap-2 items-center"><i data-lucide="triangle-alert" class="w-4 h-4"></i>Réinitialiser les données</button>
+  </div>
+  <div id="toast-region" class="fixed right-4 bottom-4 z-[70] space-y-2 no-print" aria-live="polite"></div>
 
-  <!-- BARRE SUPÉRIEURE GLOBALE ÉPURÉE & NAVIGATION DE VUES -->
-  <header class="no-print h-14 theme-header px-3 py-1.5 flex items-center justify-between border-b border-stone-800/40 shrink-0 shadow-sm z-30">
-    <!-- Gauche : Repli panneau + Identité personnalisable -->
-    <div class="flex items-center gap-2.5 min-w-0">
-      <button onclick="app.toggleLeftSidebar()" title="Afficher/Masquer l'arborescence (Gauche)" class="p-1.5 rounded-lg hover:bg-white/10 transition">
+  <!-- Barre supérieure : navigation, recherche rapide et sauvegarde -->
+  <header class="no-print h-14 theme-header px-3 py-1.5 flex items-center justify-between gap-3 border-b border-stone-800/40 shrink-0 shadow-sm z-30">
+    <div class="flex items-center gap-2 min-w-0">
+      <button onclick="app.toggleLeftSidebar()" aria-label="Afficher ou masquer l'arborescence" title="Panneau gauche (Ctrl+B)" class="p-2 rounded-lg hover:bg-white/10 transition">
         <i data-lucide="panel-left" class="w-4 h-4"></i>
       </button>
-
-      <div onclick="app.openModal('theme-modal')" class="flex items-center gap-2 cursor-pointer group px-2 py-1 rounded-lg hover:bg-white/10 transition" title="Cliquer pour personnaliser le titre, l'icône ou le thème">
+      <div class="flex items-center gap-2 min-w-0">
         <span id="site-icon-display" class="text-lg leading-none">📚</span>
-        <div class="truncate">
-          <h1 id="site-title-display" class="font-serif-title font-semibold text-sm md:text-base tracking-wide truncate">Atelier Pédagogique 5ème</h1>
-          <p id="site-subtitle-display" class="text-[10px] opacity-75 truncate hidden sm:block">Programmation & Séquences</p>
-        </div>
+        <h1 id="site-title-display" class="font-serif-title font-semibold text-base tracking-wide truncate">Atelier Pédagogique 5ème</h1>
       </div>
+      <nav class="hidden md:flex items-center gap-1 bg-black/25 p-1 rounded-xl border border-white/10" aria-label="Navigation principale">
+        <button onclick="app.switchMainView('workspace')" id="nav-btn-workspace" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i><span>Programmation</span>
+        </button>
+        <button onclick="app.switchMainView('calendar')" id="nav-btn-calendar" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i><span>Calendrier</span>
+        </button>
+      </nav>
     </div>
-
-    <!-- Centre : Commutateur de Vues Clair (3 Vues distinctes + Retour vue précédente) -->
-    <div class="flex items-center gap-1 bg-black/25 p-1 rounded-xl border border-white/10">
-      <button onclick="app.switchMainView('workspace')" id="nav-btn-workspace"
-              class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-        <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
-        <span>Projets & Séances</span>
-      </button>
-      <button onclick="app.switchMainView('calendar')" id="nav-btn-calendar"
-              class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-        <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i>
-        <span>Calendrier & Tableau</span>
-      </button>
-      <button onclick="app.switchMainView('brainstorm')" id="nav-btn-brainstorm"
-              class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-        <i data-lucide="lightbulb" class="w-3.5 h-3.5"></i>
-        <span>Mur de Brainstorming</span>
-      </button>
-    </div>
-
-    <!-- Droite : Annuler/Rétablir + Studio Apparence + Tags + Panneau droit -->
+    <button onclick="app.openCommandPalette()" class="hidden sm:flex items-center gap-2 min-w-[220px] justify-between px-3 py-2 rounded-lg bg-white/10 border border-white/15 text-left text-xs text-stone-200 hover:bg-white/15" title="Recherche rapide (Ctrl+K)">
+      <span class="flex items-center gap-2"><i data-lucide="search" class="w-4 h-4"></i>Recherche rapide</span><kbd class="text-[11px] opacity-70">Ctrl K</kbd>
+    </button>
     <div class="flex items-center gap-1.5">
-      <!-- Boutons Annuler / Rétablir (Undo / Redo) -->
-      <div class="flex items-center bg-black/20 rounded-lg p-0.5 border border-white/10 mr-1">
-        <button onclick="app.undo()" id="btn-undo" title="Annuler la dernière modification (Ctrl+Z)" class="p-1.5 rounded hover:bg-white/10 disabled:opacity-30 transition">
-          <i data-lucide="undo-2" class="w-3.5 h-3.5"></i>
-        </button>
-        <button onclick="app.redo()" id="btn-redo" title="Rétablir la modification (Ctrl+Y)" class="p-1.5 rounded hover:bg-white/10 disabled:opacity-30 transition">
-          <i data-lucide="redo-2" class="w-3.5 h-3.5"></i>
-        </button>
-      </div>
-
-      <!-- Bouton Gestion des Tags Dominantes -->
-      <button onclick="app.openModal('tags-modal')" title="Gérer et colorer les tags de dominantes" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white/10 hover:bg-white/20 flex items-center gap-1.5 transition">
-        <i data-lucide="tags" class="w-3.5 h-3.5"></i>
-        <span class="hidden lg:inline">Dominantes</span>
-      </button>
-
-      <!-- Bouton Studio de Mise en forme & Thèmes -->
-      <button onclick="app.openModal('theme-modal')" title="Personnaliser le thème, les couleurs, la police et la mise en page" class="px-2.5 py-1.5 rounded-lg text-xs font-medium theme-accent-btn flex items-center gap-1.5 shadow-sm transition">
-        <i data-lucide="palette" class="w-3.5 h-3.5"></i>
-        <span class="hidden md:inline"> Apparence & Mise en forme</span>
-      </button>
-
-      <!-- Indicateur discret de sauvegarde -->
-      <span id="save-indicator" class="hidden xl:flex items-center gap-1 text-[11px] text-emerald-300 px-2">
-        <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
-        <span id="save-time">Sauvegardé</span>
+      <span id="save-indicator" class="hidden lg:flex items-center gap-1.5 text-xs status-ok px-2" title="État de sauvegarde">
+        <i data-lucide="check-circle-2" class="w-4 h-4"></i><span id="save-time">Enregistré localement</span>
       </span>
-
-      <button onclick="app.toggleRightSidebar()" title="Afficher/Masquer le panneau latéral droit (Notes & Liens)" class="p-1.5 rounded-lg hover:bg-white/10 transition">
-        <i data-lucide="panel-right" class="w-4 h-4"></i>
+      <button onclick="app.syncToDiskFile()" class="theme-accent-btn px-3 py-2 rounded-lg text-xs flex items-center gap-1.5 shadow-sm" title="Enregistrer sur disque (Ctrl+S)">
+        <i data-lucide="save" class="w-4 h-4"></i><span class="hidden sm:inline">Enregistrer</span>
       </button>
+      <button onclick="app.toggleClassMode()" class="hidden lg:flex px-3 py-2 rounded-lg text-xs items-center gap-1.5 bg-white/10 hover:bg-white/15" title="Mode classe">
+        <i data-lucide="presentation" class="w-4 h-4"></i>Mode classe
+      </button>
+      <button onclick="app.toggleFocusMode()" aria-label="Mode focus" title="Mode focus" class="p-2 rounded-lg hover:bg-white/10"><i data-lucide="maximize-2" class="w-4 h-4"></i></button>
+      <button onclick="app.toggleRightSidebar()" aria-label="Afficher ou masquer le panneau droit" title="Panneau droit (Ctrl+Maj+B)" class="p-2 rounded-lg hover:bg-white/10"><i data-lucide="panel-right" class="w-4 h-4"></i></button>
+      <button onclick="app.openOverflowMenu()" aria-label="Plus d'actions" title="Plus d'actions" class="p-2 rounded-lg hover:bg-white/10"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
     </div>
   </header>
 
@@ -227,9 +288,9 @@
       <div id="tree-container" class="flex-1 overflow-y-auto p-2.5 space-y-2.5"></div>
 
       <!-- Pied de barre gauche -->
-      <div class="p-2.5 border-t border-stone-200/80 bg-black/5 flex items-center justify-between text-[11px] text-stone-600">
+      <div class="p-2.5 border-t border-stone-200/80 bg-black/5 flex items-center justify-between text-xs text-stone-600">
         <span id="stats-counter">3 PA • 6 séances</span>
-        <button onclick="app.resetToGoogleSheetData()" class="underline hover:text-amber-800" title="Recharger les données initiales du Google Sheet">Données Sheet initiales</button>
+        <span class="text-[11px] text-stone-400">Données locales</span>
       </div>
     </aside>
 
@@ -318,6 +379,24 @@
     </label>
   </div>
 
+  <!-- Modale non bloquante d'ajout de support -->
+  <div id="media-add-modal" onclick="app.closeModal('media-add-modal')" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4 no-print">
+    <div onclick="event.stopPropagation()" class="theme-card max-w-lg w-full p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-serif-title font-bold text-xl">Ajouter un support</h3>
+        <button onclick="app.closeModal('media-add-modal')" aria-label="Fermer"><i data-lucide="x"></i></button>
+      </div>
+      <form onsubmit="app.submitMediaForm(event)" class="space-y-3">
+        <input type="hidden" id="media-add-target"><input type="hidden" id="media-add-seq"><input type="hidden" id="media-add-sea">
+        <label class="block text-sm font-semibold">Titre<input required id="media-add-title" class="mt-1 w-full rounded-lg border p-2" placeholder="Ex. Diaporama de la séance"></label>
+        <label class="block text-sm font-semibold">Lien ou fichier<input required id="media-add-url" class="mt-1 w-full rounded-lg border p-2" placeholder="https://... ou nom de fichier"></label>
+        <label class="block text-sm font-semibold">Type<select id="media-add-type" class="mt-1 w-full rounded-lg border p-2"><option value="image">Image</option><option value="slides">Diaporama</option><option value="video">Vidéo</option><option value="doc">Document / PDF</option></select></label>
+        <label class="block text-sm font-semibold">Note<textarea id="media-add-note" rows="3" class="mt-1 w-full rounded-lg border p-2" placeholder="Consigne ou précision (facultatif)"></textarea></label>
+        <div class="flex justify-end gap-2"><button type="button" onclick="app.closeModal('media-add-modal')" class="px-3 py-2 rounded-lg border">Annuler</button><button type="submit" class="theme-accent-btn px-4 py-2 rounded-lg">Ajouter le support</button></div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODALE 1 : GESTIONNAIRE DES TAGS DE DOMINANTES & COULEURS DE SURLIGNAGE -->
   <div id="tags-modal" onclick="app.closeModal('tags-modal')" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4 no-print">
     <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-stone-200 space-y-5 max-h-[90vh] flex flex-col">
@@ -399,10 +478,7 @@
             <span class="text-xs text-stone-600 block mb-1">Police des titres :</span>
             <select id="studio-title-font" onchange="app.updateAppearanceField('titleFont', this.value)" class="w-full text-xs border border-stone-300 rounded-lg p-2 bg-white">
               <option value="'Lora', serif">Lora (Sérif littéraire)</option>
-              <option value="'Playfair Display', serif">Playfair Display (Éditorial & Créatif)</option>
-              <option value="'Merriweather', serif">Merriweather (Classique)</option>
-              <option value="'Montserrat', sans-serif">Montserrat (Géométrique moderne)</option>
-              <option value="'Quicksand', sans-serif">Quicksand (Doux & Arrondi)</option>
+              <option value="Georgia, serif">Georgia (Classique)</option>
             </select>
           </div>
           <div>
@@ -410,8 +486,6 @@
             <select id="studio-body-font" onchange="app.updateAppearanceField('fontFamily', this.value)" class="w-full text-xs border border-stone-300 rounded-lg p-2 bg-white">
               <option value="'Inter', sans-serif">Inter (Épuré & Lisible)</option>
               <option value="'Lora', serif">Lora (Sérif)</option>
-              <option value="'Quicksand', sans-serif">Quicksand (Créatif & Doux)</option>
-              <option value="'Montserrat', sans-serif">Montserrat (Moderne)</option>
               <option value="'Georgia', serif">Georgia (Roman)</option>
             </select>
           </div>
@@ -525,7 +599,7 @@
         bgHeader: "#1E352F",
         accent: "#2E6F40",
         titleFont: "'Lora', serif",
-        bodyFont: "'Quicksand', sans-serif"
+        bodyFont: "'Inter', sans-serif"
       },
       {
         id: "poudree",
@@ -536,7 +610,7 @@
         bgSidebar: "#F7ECEC",
         bgHeader: "#3B1F2B",
         accent: "#BE185D",
-        titleFont: "'Playfair Display', serif",
+        titleFont: "'Lora', serif",
         bodyFont: "'Inter', sans-serif"
       },
       {
@@ -548,7 +622,7 @@
         bgSidebar: "#EBF1F8",
         bgHeader: "#0F172A",
         accent: "#0369A1",
-        titleFont: "'Merriweather', serif",
+        titleFont: "'Lora', serif",
         bodyFont: "'Inter', sans-serif"
       },
       {
@@ -560,8 +634,8 @@
         bgSidebar: "#FDEEDC",
         bgHeader: "#431407",
         accent: "#C2410C",
-        titleFont: "'Playfair Display', serif",
-        bodyFont: "'Quicksand', sans-serif"
+        titleFont: "'Lora', serif",
+        bodyFont: "'Inter', sans-serif"
       },
       {
         id: "minimal",
@@ -572,7 +646,7 @@
         bgSidebar: "#F3F4F6",
         bgHeader: "#111827",
         accent: "#374151",
-        titleFont: "'Montserrat', sans-serif",
+        titleFont: "'Lora', serif",
         bodyFont: "'Inter', sans-serif"
       }
     ];
@@ -841,7 +915,7 @@
       isUndoRedoAction: false,
 
       init() {
-        const saved = localStorage.getItem('atelier_pedagogique_5eme_v3');
+        const saved = localStorage.getItem('atelier_pedagogique_5eme_v2');
         if (saved) {
           try {
             this.data = JSON.parse(saved);
@@ -912,6 +986,14 @@
         };
       },
 
+      getPreparationStatus(sea) {
+        const c = sea.checklist || {};
+        if (c.realisee) return { label: 'Réalisée', icon: '✓', cls: 'status-done' };
+        if (c.supportsPrets && c.diapoPret) return { label: 'Prête', icon: '●', cls: 'status-ready' };
+        if (c.supportsPrets || c.diapoPret) return { label: 'En cours', icon: '◐', cls: 'status-progress' };
+        return { label: 'À préparer', icon: '○', cls: 'status-todo' };
+      },
+
       // --- HISTORIQUE ANNULER / RÉTABLIR (UNDO / REDO) ---
       pushHistoryState() {
         if (this.isUndoRedoAction) return;
@@ -974,11 +1056,19 @@
           clearTimeout(this._histTimer);
           this._histTimer = setTimeout(() => this.pushHistoryState(), 350);
         }
-        localStorage.setItem('atelier_pedagogique_5eme_v3', JSON.stringify(this.data));
+        localStorage.setItem('atelier_pedagogique_5eme_v2', JSON.stringify(this.data));
+        if (this.fileHandle) {
+          clearTimeout(this._diskSaveTimer);
+          this._diskSaveTimer = setTimeout(() => this.syncToDiskFile(true), 5000);
+        }
         const now = new Date();
         const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const el = document.getElementById('save-time');
-        if (el) el.textContent = `Sauvegardé (${timeStr})`;
+        if (el) {
+          el.textContent = `Enregistré localement à ${timeStr}`;
+          el.parentElement?.classList.remove('status-warning');
+          el.parentElement?.classList.add('status-ok');
+        }
         this.updateStats();
       },
 
@@ -1171,12 +1261,92 @@
 
       promptRenameLabel(key, message) {
         const current = this.data.settings.customLabels?.[key] || '';
-        const next = prompt(message, current);
-        if (next !== null && next.trim() !== '') {
-          this.data.settings.customLabels[key] = next.trim();
-          this.applyAppearanceToDOM();
-          this.saveData();
-        }
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4 no-print';
+        modal.innerHTML = `<form class="theme-card max-w-md w-full p-5 space-y-4"><h3 class="font-serif-title text-xl font-bold">${this.escapeHtml(message)}</h3><input required class="rename-input w-full rounded-lg border p-2" value="${this.escapeAttr(current)}"><div class="flex justify-end gap-2"><button type="button" class="cancel px-3 py-2 rounded-lg border">Annuler</button><button class="px-3 py-2 rounded-lg theme-accent-btn">Enregistrer</button></div></form>`;
+        document.body.appendChild(modal);
+        modal.querySelector('.cancel').onclick = () => modal.remove();
+        modal.querySelector('form').onsubmit = (event) => {
+          event.preventDefault();
+          const next = modal.querySelector('.rename-input').value.trim();
+          if (next) { this.data.settings.customLabels[key] = next; this.applyAppearanceToDOM(); this.saveData(); }
+          modal.remove();
+        };
+        modal.querySelector('.rename-input').focus();
+      },
+
+      openCommandPalette() {
+        const modal = document.getElementById('command-palette');
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        const input = document.getElementById('command-search');
+        input.value = ''; this.renderCommandResults(); setTimeout(() => input.focus(), 0);
+      },
+
+      closeCommandPalette() {
+        const modal = document.getElementById('command-palette');
+        modal.classList.add('hidden'); modal.classList.remove('flex');
+      },
+
+      renderCommandResults() {
+        const q = (document.getElementById('command-search')?.value || '').toLowerCase().trim();
+        const results = [];
+        this.data.sequences.forEach(seq => {
+          if (!q || `${seq.code} ${seq.titre}`.toLowerCase().includes(q)) {
+            results.push({ label: `${seq.code} — ${seq.titre}`, icon: 'folder-open', action: `app.openTab({id:'tab-${seq.id}',type:'sequence',seqId:'${seq.id}'},true); app.closeCommandPalette()` });
+          }
+          seq.seances.forEach(sea => {
+            if (!q || `${seq.code} ${sea.titre}`.toLowerCase().includes(q)) {
+              results.push({ label: `${seq.code} — ${sea.titre}`, icon: 'file-text', action: `app.openTab({id:'tab-${sea.id}',type:'seance',seqId:'${seq.id}',seaId:'${sea.id}'},true); app.closeCommandPalette()` });
+            }
+          });
+        });
+        const el = document.getElementById('command-results');
+        el.innerHTML = results.slice(0, 30).map(r => `<button onclick="${r.action}" class="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-100 flex items-center gap-2"><i data-lucide="${r.icon}" class="w-4 h-4 text-amber-700"></i>${this.escapeHtml(r.label)}</button>`).join('') || '<p class="text-sm text-stone-500 p-3">Aucun résultat. Essayez un autre terme.</p>';
+        lucide.createIcons();
+      },
+
+      openOverflowMenu() {
+        document.getElementById('overflow-menu').classList.toggle('hidden');
+        lucide.createIcons();
+      },
+      closeOverflowMenu() { document.getElementById('overflow-menu').classList.add('hidden'); },
+
+      closeDrawers() {
+        this.showLeft = false; this.showRight = false;
+        document.getElementById('left-sidebar')?.classList.add('is-closed');
+        document.getElementById('right-sidebar')?.classList.add('is-closed');
+        document.getElementById('drawer-scrim')?.classList.remove('is-visible');
+      },
+
+      showToast(message, type = 'info', undoAction = null) {
+        const region = document.getElementById('toast-region');
+        const toast = document.createElement('div');
+        toast.className = 'toast theme-card border px-4 py-3 flex items-center gap-3 text-sm';
+        toast.innerHTML = `<span>${this.escapeHtml(message)}</span>${undoAction ? '<button class="underline font-semibold">Annuler</button>' : ''}`;
+        if (undoAction) toast.querySelector('button').onclick = () => { undoAction(); toast.remove(); };
+        region.appendChild(toast);
+        setTimeout(() => toast.remove(), 8000);
+      },
+
+      confirmReset() {
+        this.closeOverflowMenu();
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4 no-print';
+        modal.innerHTML = `<div class="theme-card max-w-md w-full p-5 space-y-4"><h3 class="font-serif-title text-xl font-bold text-red-700">Réinitialiser les données ?</h3><p class="text-sm">Les données locales seront remplacées par le jeu initial. Cette action est irréversible.</p><div class="flex justify-end gap-2"><button class="cancel px-3 py-2 rounded-lg border">Annuler</button><button class="danger px-3 py-2 rounded-lg bg-red-700 text-white">Continuer</button></div></div>`;
+        document.body.appendChild(modal);
+        modal.querySelector('.cancel').onclick = () => modal.remove();
+        modal.querySelector('.danger').onclick = () => {
+          modal.querySelector('.danger').textContent = 'Confirmer la réinitialisation';
+          modal.querySelector('.danger').onclick = () => { modal.remove(); this.resetToGoogleSheetData(); };
+        };
+      },
+
+      toggleClassMode() {
+        const active = this.openTabs.find(t => t.id === this.activeTabId);
+        if (!active || active.type !== 'seance') { this.showToast('Ouvrez une séance pour lancer le mode classe.'); return; }
+        document.body.classList.toggle('class-mode');
+        this.toggleLeftSidebar(false); this.toggleRightSidebar(false);
+        this.renderViewport();
       },
 
       // --- GESTION DES MODALES ---
@@ -1381,14 +1551,20 @@
 
       toggleLeftSidebar(forceState = null) {
         this.showLeft = forceState !== null ? forceState : !this.showLeft;
-        document.getElementById('left-sidebar').style.display = this.showLeft ? 'flex' : 'none';
+        const el = document.getElementById('left-sidebar');
+        el.style.display = this.showLeft ? 'flex' : 'none';
+        el.classList.toggle('is-closed', !this.showLeft);
         document.getElementById('resizer-left').style.display = this.showLeft ? 'block' : 'none';
+        document.getElementById('drawer-scrim')?.classList.toggle('is-visible', this.showLeft && window.innerWidth < 1024);
       },
 
       toggleRightSidebar(forceState = null) {
         this.showRight = forceState !== null ? forceState : !this.showRight;
-        document.getElementById('right-sidebar').style.display = this.showRight ? 'flex' : 'none';
+        const el = document.getElementById('right-sidebar');
+        el.style.display = this.showRight ? 'flex' : 'none';
+        el.classList.toggle('is-closed', !this.showRight);
         document.getElementById('resizer-right').style.display = this.showRight ? 'block' : 'none';
+        document.getElementById('drawer-scrim')?.classList.toggle('is-visible', this.showRight && window.innerWidth < 1024);
       },
 
       toggleFocusMode() {
@@ -1496,16 +1672,19 @@
               ${filteredSeances.map(sea => {
                 const isSeaActive = this.currentMainView === 'workspace' && this.activeTabId === `tab-${sea.id}`;
                 const st = this.getDominanteStyle(sea.dominante);
+                const prep = this.getPreparationStatus(sea);
                 const dateBadge = sea.dateDebut ? new Date(sea.dateDebut).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '';
+                const overdue = sea.dateFin && sea.dateFin < new Date().toISOString().slice(0, 10) && !sea.checklist?.realisee;
                 return `
                   <div onclick="app.openTab({ id: 'tab-${sea.id}', type: 'seance', seqId: '${seq.id}', seaId: '${sea.id}' }, true)"
                        style="background-color: ${isSeaActive ? st.bgActive : st.bgSoft}; border-left: 4px solid ${st.color}; ${isSeaActive ? `outline: 2px solid ${st.color};` : ''}"
                        class="cursor-pointer pl-2.5 pr-2 py-1.5 rounded-r-lg text-xs flex items-center justify-between gap-1.5 transition hover:brightness-95">
                     <div class="flex items-center gap-2 min-w-0 flex-1">
                       <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${st.color}" title="Dominante : ${sea.dominante}"></span>
-                      <span class="${isSeaActive ? 'font-bold text-stone-950' : 'font-medium text-stone-800'} truncate" title="${this.escapeAttr(sea.titre)}">${sea.titre}</span>
+                      <span class="${isSeaActive ? 'font-bold text-stone-950' : 'font-medium text-stone-800'} truncate ${overdue ? 'text-red-700' : ''}" title="${this.escapeAttr(sea.titre)}">${sea.titre}</span>
                     </div>
-                    ${dateBadge ? `<span class="text-[10px] font-medium text-stone-600 shrink-0">${dateBadge}</span>` : ''}
+                    <span class="text-[11px] px-1.5 rounded-full shrink-0 ${prep.cls}" title="${prep.label}">${prep.icon}</span>
+                    ${dateBadge ? `<span class="text-[11px] font-medium text-stone-600 shrink-0">${dateBadge}</span>` : ''}
                   </div>
                 `;
               }).join('')}
@@ -1915,10 +2094,6 @@
                   <option value="">Police...</option>
                   <option value="'Inter', sans-serif">Inter (Sans-serif)</option>
                   <option value="'Lora', serif">Lora (Sérif littéraire)</option>
-                  <option value="'Playfair Display', serif">Playfair Display</option>
-                  <option value="'Merriweather', serif">Merriweather</option>
-                  <option value="'Quicksand', sans-serif">Quicksand (Arrondi)</option>
-                  <option value="'Montserrat', sans-serif">Montserrat</option>
                   <option value="'Georgia', serif">Georgia</option>
                 </select>
 
@@ -2173,20 +2348,25 @@
       },
 
       promptAddMedia(targetType, seqId, seaId) {
-        const title = prompt("Titre du support (ex: Vidéo BNF, Diaporama Séance 2, Illustration) :");
-        if (!title) return;
-        const url = prompt("Lien URL (https://...) ou chemin/nom du fichier local :");
-        if (!url) return;
-        const typeChoice = prompt("Type : 'image', 'slides' (diapo), 'video' ou 'doc' :", "image");
-        const note = prompt("Note ou consigne associée (optionnel) :", "");
+        document.getElementById('media-add-target').value = targetType;
+        document.getElementById('media-add-seq').value = seqId;
+        document.getElementById('media-add-sea').value = seaId || '';
+        document.getElementById('media-add-title').value = '';
+        document.getElementById('media-add-url').value = '';
+        document.getElementById('media-add-note').value = '';
+        this.openModal('media-add-modal');
+      },
 
-        this.pushMedia(targetType, seqId, seaId, {
-          id: 'med-' + Date.now(),
-          type: ['image', 'slides', 'video', 'doc'].includes(typeChoice) ? typeChoice : 'doc',
-          title,
-          url,
-          note
-        });
+      submitMediaForm(event) {
+        event.preventDefault();
+        const type = document.getElementById('media-add-type').value;
+        this.pushMedia(
+          document.getElementById('media-add-target').value,
+          document.getElementById('media-add-seq').value,
+          document.getElementById('media-add-sea').value,
+          { id: 'med-' + Date.now(), type, title: document.getElementById('media-add-title').value.trim(), url: document.getElementById('media-add-url').value.trim(), note: document.getElementById('media-add-note').value.trim() }
+        );
+        this.closeModal('media-add-modal');
       },
 
       handleLocalMediaUpload(event, targetType, seqId, seaId) {
@@ -2792,7 +2972,7 @@
       },
 
       // --- SAUVEGARDE DIRECTE SUR LE DISQUE / DOSSIER GOOGLE DRIVE LOCAL ---
-      async syncToDiskFile() {
+      async syncToDiskFile(silent = false) {
         try {
           if ('showSaveFilePicker' in window) {
             if (!this.fileHandle) {
@@ -2805,12 +2985,13 @@
             await writable.write(JSON.stringify(this.data, null, 2));
             await writable.close();
             document.getElementById('disk-file-label').textContent = `Synchronisé (${this.fileHandle.name})`;
-            document.getElementById('save-time').textContent = `Disque OK`;
-          } else {
+            document.getElementById('save-time').textContent = `Enregistré sur disque à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+            document.getElementById('save-indicator')?.classList.replace('status-warning', 'status-ok');
+          } else if (!silent) {
             this.exportJSON();
           }
         } catch (err) {
-          if (err.name !== 'AbortError') {
+          if (err.name !== 'AbortError' && !silent) {
             this.exportJSON();
           }
         }
@@ -2859,6 +3040,25 @@
 
       setupKeyboardShortcuts() {
         window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            if (document.body.classList.contains('class-mode')) { document.body.classList.remove('class-mode'); this.toggleLeftSidebar(true); this.toggleRightSidebar(true); this.renderViewport(); }
+            this.closeCommandPalette(); this.closeOverflowMenu();
+            document.querySelectorAll('.fixed.z-\\[80\\]').forEach(el => el.remove());
+            return;
+          }
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault(); this.openCommandPalette(); return;
+          }
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b' && !e.shiftKey) {
+            e.preventDefault(); this.toggleLeftSidebar(); return;
+          }
+          if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'b') {
+            e.preventDefault(); this.toggleRightSidebar(); return;
+          }
+          if (e.key === '?' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+            this.showToast('Raccourcis : Ctrl+S enregistrer · Ctrl+K rechercher · Ctrl+B panneaux · Échap quitter');
+            return;
+          }
           if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
             e.preventDefault();
             this.saveData();
@@ -2887,7 +3087,11 @@
       },
 
       escapeAttr(str) {
-        return String(str || '').replace(/"/g, '&quot;');
+        return String(str || '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+      },
+
+      escapeHtml(str) {
+        return String(str || '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
       },
 
       renderAll() {
