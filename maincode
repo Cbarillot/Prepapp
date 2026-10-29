@@ -1,0 +1,2905 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atelier Pédagogique 5ème — Projets d'Apprentissage & Séances</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-main: #FAF8F5;
+      --bg-sidebar: #F3EFEA;
+      --bg-card: #FFFFFF;
+      --bg-header: #1C1917;
+      --text-header: #F5F5F4;
+      --text-main: #292524;
+      --accent: #B45309;
+      --accent-soft: #FEF3C7;
+      --border-color: #E7E5E4;
+      --editor-font: 'Inter', sans-serif;
+      --title-font: 'Lora', serif;
+      --editor-size: 15px;
+      --card-radius: 12px;
+      --content-max-width: 1024px;
+    }
+
+    body {
+      font-family: var(--editor-font);
+      background-color: var(--bg-main);
+      color: var(--text-main);
+    }
+
+    .font-serif-title {
+      font-family: var(--title-font);
+    }
+
+    .theme-header {
+      background-color: var(--bg-header);
+      color: var(--text-header);
+    }
+
+    .theme-sidebar {
+      background-color: var(--bg-sidebar);
+      border-color: var(--border-color);
+    }
+
+    .theme-card {
+      background-color: var(--bg-card);
+      border-color: var(--border-color);
+      border-radius: var(--card-radius);
+    }
+
+    .theme-accent-btn {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+    .theme-accent-btn:hover {
+      filter: brightness(1.08);
+    }
+
+    .content-container {
+      max-width: var(--content-max-width);
+    }
+
+    /* Zone d'édition riche */
+    .rich-editor {
+      font-family: var(--editor-font);
+      font-size: var(--editor-size);
+      line-height: 1.65;
+      min-height: 240px;
+      outline: none;
+    }
+    .rich-editor ul { list-style-type: disc; padding-left: 1.5rem; margin: 0.4rem 0; }
+    .rich-editor ol { list-style-type: decimal; padding-left: 1.5rem; margin: 0.4rem 0; }
+    .rich-editor h3 { font-weight: 700; font-size: 1.15em; margin-top: 0.75rem; margin-bottom: 0.25rem; color: var(--accent); font-family: var(--title-font); }
+    .rich-editor blockquote { border-left: 4px solid var(--accent); padding-left: 0.75rem; color: #57534e; font-style: italic; margin: 0.5rem 0; background: var(--accent-soft); padding: 0.6rem 0.85rem; border-radius: 0.35rem; }
+
+    /* Poignées de redimensionnement */
+    .resizer {
+      width: 5px;
+      cursor: col-resize;
+      background-color: transparent;
+      transition: background-color 0.15s ease;
+      z-index: 20;
+    }
+    .resizer:hover, .resizer.active {
+      background-color: var(--accent);
+    }
+
+    /* Scrollbars discrètes */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+
+    /* Impression / Export PDF propre */
+    @media print {
+      .no-print { display: none !important; }
+      body, html, #app-root, #main-workspace {
+        height: auto !important;
+        overflow: visible !important;
+        background: white !important;
+      }
+      .print-container {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+    }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col select-none" id="app-root">
+
+  <!-- BARRE SUPÉRIEURE GLOBALE ÉPURÉE & NAVIGATION DE VUES -->
+  <header class="no-print h-14 theme-header px-3 py-1.5 flex items-center justify-between border-b border-stone-800/40 shrink-0 shadow-sm z-30">
+    <!-- Gauche : Repli panneau + Identité personnalisable -->
+    <div class="flex items-center gap-2.5 min-w-0">
+      <button onclick="app.toggleLeftSidebar()" title="Afficher/Masquer l'arborescence (Gauche)" class="p-1.5 rounded-lg hover:bg-white/10 transition">
+        <i data-lucide="panel-left" class="w-4 h-4"></i>
+      </button>
+
+      <div onclick="app.openModal('theme-modal')" class="flex items-center gap-2 cursor-pointer group px-2 py-1 rounded-lg hover:bg-white/10 transition" title="Cliquer pour personnaliser le titre, l'icône ou le thème">
+        <span id="site-icon-display" class="text-lg leading-none">📚</span>
+        <div class="truncate">
+          <h1 id="site-title-display" class="font-serif-title font-semibold text-sm md:text-base tracking-wide truncate">Atelier Pédagogique 5ème</h1>
+          <p id="site-subtitle-display" class="text-[10px] opacity-75 truncate hidden sm:block">Programmation & Séquences</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centre : Commutateur de Vues Clair (3 Vues distinctes + Retour vue précédente) -->
+    <div class="flex items-center gap-1 bg-black/25 p-1 rounded-xl border border-white/10">
+      <button onclick="app.switchMainView('workspace')" id="nav-btn-workspace"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+        <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+        <span>Projets & Séances</span>
+      </button>
+      <button onclick="app.switchMainView('calendar')" id="nav-btn-calendar"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+        <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i>
+        <span>Calendrier & Tableau</span>
+      </button>
+      <button onclick="app.switchMainView('brainstorm')" id="nav-btn-brainstorm"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+        <i data-lucide="lightbulb" class="w-3.5 h-3.5"></i>
+        <span>Mur de Brainstorming</span>
+      </button>
+    </div>
+
+    <!-- Droite : Annuler/Rétablir + Studio Apparence + Tags + Panneau droit -->
+    <div class="flex items-center gap-1.5">
+      <!-- Boutons Annuler / Rétablir (Undo / Redo) -->
+      <div class="flex items-center bg-black/20 rounded-lg p-0.5 border border-white/10 mr-1">
+        <button onclick="app.undo()" id="btn-undo" title="Annuler la dernière modification (Ctrl+Z)" class="p-1.5 rounded hover:bg-white/10 disabled:opacity-30 transition">
+          <i data-lucide="undo-2" class="w-3.5 h-3.5"></i>
+        </button>
+        <button onclick="app.redo()" id="btn-redo" title="Rétablir la modification (Ctrl+Y)" class="p-1.5 rounded hover:bg-white/10 disabled:opacity-30 transition">
+          <i data-lucide="redo-2" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <!-- Bouton Gestion des Tags Dominantes -->
+      <button onclick="app.openModal('tags-modal')" title="Gérer et colorer les tags de dominantes" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white/10 hover:bg-white/20 flex items-center gap-1.5 transition">
+        <i data-lucide="tags" class="w-3.5 h-3.5"></i>
+        <span class="hidden lg:inline">Dominantes</span>
+      </button>
+
+      <!-- Bouton Studio de Mise en forme & Thèmes -->
+      <button onclick="app.openModal('theme-modal')" title="Personnaliser le thème, les couleurs, la police et la mise en page" class="px-2.5 py-1.5 rounded-lg text-xs font-medium theme-accent-btn flex items-center gap-1.5 shadow-sm transition">
+        <i data-lucide="palette" class="w-3.5 h-3.5"></i>
+        <span class="hidden md:inline"> Apparence & Mise en forme</span>
+      </button>
+
+      <!-- Indicateur discret de sauvegarde -->
+      <span id="save-indicator" class="hidden xl:flex items-center gap-1 text-[11px] text-emerald-300 px-2">
+        <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+        <span id="save-time">Sauvegardé</span>
+      </span>
+
+      <button onclick="app.toggleRightSidebar()" title="Afficher/Masquer le panneau latéral droit (Notes & Liens)" class="p-1.5 rounded-lg hover:bg-white/10 transition">
+        <i data-lucide="panel-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- BANNIÈRE DÉCORATIVE OPTIONNELLE -->
+  <div id="custom-banner" class="no-print hidden h-24 w-full bg-cover bg-center relative border-b border-stone-300 shrink-0">
+    <div class="absolute inset-0 bg-gradient-to-r from-black/50 via-black/25 to-transparent flex items-end p-3">
+      <span id="banner-caption" class="text-white text-xs font-serif-title italic drop-shadow"></span>
+    </div>
+  </div>
+
+  <!-- CORPS DE L'APPLICATION (3 COLONNES REDIMENSIONNABLES) -->
+  <div class="flex-1 flex overflow-hidden select-text">
+
+    <!-- 1. BARRE LATÉRALE GAUCHE : ARBORESCENCE DES PROJETS D'APPRENTISSAGE & SÉANCES COLORÉES -->
+    <aside id="left-sidebar" style="width: 320px;" class="no-print theme-sidebar border-r flex flex-col shrink-0 transition-none overflow-hidden">
+      <div class="p-3 border-b border-stone-200/80 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span id="label-sidebar-pa" onclick="app.promptRenameLabel('sidebarPA', 'Titre de la colonne de gauche :')" class="text-xs font-bold uppercase tracking-wider text-stone-500 cursor-pointer hover:text-stone-800 flex items-center gap-1" title="Cliquer pour renommer cet intitulé">
+            <span>Projets d'Apprentissage</span>
+            <i data-lucide="edit-3" class="w-3 h-3 opacity-40"></i>
+          </span>
+          <button onclick="app.createSequence()" class="px-2.5 py-1 rounded-lg theme-accent-btn text-xs font-medium flex items-center gap-1 shadow-sm transition">
+            <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i>
+            <span>Nouveau PA</span>
+          </button>
+        </div>
+
+        <!-- Recherche -->
+        <div class="relative">
+          <input type="text" id="tree-search" oninput="app.renderTree()" placeholder="Rechercher un PA, une séance..." class="w-full pl-7 pr-2 py-1.5 text-xs bg-white border border-stone-300 rounded-lg focus:outline-none focus:border-amber-600">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-2"></i>
+        </div>
+
+        <!-- Filtres dynamiques par dominante + bouton d'édition des tags -->
+        <div class="flex items-center gap-1 flex-wrap pt-0.5" id="dominante-filters"></div>
+      </div>
+
+      <!-- Liste Arborescente avec surlignage pastel des titres de séances -->
+      <div id="tree-container" class="flex-1 overflow-y-auto p-2.5 space-y-2.5"></div>
+
+      <!-- Pied de barre gauche -->
+      <div class="p-2.5 border-t border-stone-200/80 bg-black/5 flex items-center justify-between text-[11px] text-stone-600">
+        <span id="stats-counter">3 PA • 6 séances</span>
+        <button onclick="app.resetToGoogleSheetData()" class="underline hover:text-amber-800" title="Recharger les données initiales du Google Sheet">Données Sheet initiales</button>
+      </div>
+    </aside>
+
+    <!-- POIGNÉE DE REDIMENSIONNEMENT GAUCHE -->
+    <div id="resizer-left" class="resizer no-print"></div>
+
+    <!-- 2. ZONE CENTRALE : ONGLETS ÉPURÉS & CONTENU DE LA VUE ACTIVE -->
+    <main id="main-workspace" class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <!-- Barre d'onglets ouverts (uniquement visible en vue Projets & Séances, allégée sans les gros boutons d'export) -->
+      <div id="workspace-tabs-header" class="no-print bg-black/5 border-b border-stone-300/80 px-3 pt-1.5 flex items-center justify-between gap-2 shrink-0">
+        <div id="tabs-bar" class="flex items-center gap-1.5 overflow-x-auto flex-1 py-0.5"></div>
+      </div>
+
+      <!-- Contenu dynamique central -->
+      <div id="editor-viewport" class="flex-1 overflow-y-auto p-5 md:p-7"></div>
+    </main>
+
+    <!-- POIGNÉE DE REDIMENSIONNEMENT DROITE -->
+    <div id="resizer-right" class="resizer no-print"></div>
+
+    <!-- 3. BARRE LATÉRALE DROITE : BRAINSTORMING RAPIDE & MAILLAGE -->
+    <aside id="right-sidebar" style="width: 340px;" class="no-print theme-sidebar border-l flex flex-col shrink-0 transition-none overflow-hidden">
+      <div class="flex border-b border-stone-200/80 bg-black/5 p-1 gap-1">
+        <button onclick="app.setRightTab('brainstorm')" id="rtab-brainstorm" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 bg-white text-stone-900 shadow-sm">
+          <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-600"></i>
+          <span>Notes & Idées</span>
+        </button>
+        <button onclick="app.setRightTab('links')" id="rtab-links" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 text-stone-600 hover:text-stone-900">
+          <i data-lucide="git-branch" class="w-3.5 h-3.5"></i>
+          <span>Maillage & Suivi</span>
+        </button>
+      </div>
+
+      <div id="right-sidebar-content" class="flex-1 overflow-y-auto p-3 space-y-4"></div>
+    </aside>
+
+  </div>
+
+  <!-- DOCK FLOTTANT D'ACTIONS RAPIDES EN BAS À DROITE (ICÔNES + TEXTE AU SURVOL) -->
+  <div class="no-print fixed bottom-5 right-5 z-40 flex items-center gap-1.5 bg-stone-900/95 text-stone-100 p-1.5 rounded-2xl shadow-2xl border border-white/15 backdrop-blur-md">
+    <!-- Mode Focus / Gros plan -->
+    <button onclick="app.toggleFocusMode()" class="group flex items-center gap-0 hover:gap-2 px-2.5 py-2 rounded-xl hover:bg-white/15 transition-all duration-200" title="Basculer en mode Gros Plan (masquer les barres latérales)">
+      <i data-lucide="maximize-2" class="w-4 h-4 text-amber-400 shrink-0"></i>
+      <span id="dock-focus-label" class="max-w-0 overflow-hidden group-hover:max-w-xs text-xs font-medium whitespace-nowrap transition-all duration-200">Gros plan central</span>
+    </button>
+
+    <!-- Taille des onglets -->
+    <button onclick="app.toggleCompactTabs()" class="group flex items-center gap-0 hover:gap-2 px-2.5 py-2 rounded-xl hover:bg-white/15 transition-all duration-200" title="Ajuster la largeur des onglets">
+      <i data-lucide="columns" class="w-4 h-4 text-sky-400 shrink-0"></i>
+      <span id="dock-tab-size-label" class="max-w-0 overflow-hidden group-hover:max-w-xs text-xs font-medium whitespace-nowrap transition-all duration-200">Onglets compacts / larges</span>
+    </button>
+
+    <div class="h-5 w-px bg-white/15 mx-0.5"></div>
+
+    <!-- Export Word .DOC -->
+    <button onclick="app.exportActiveToDoc()" class="group flex items-center gap-0 hover:gap-2 px-2.5 py-2 rounded-xl hover:bg-blue-600/80 transition-all duration-200" title="Exporter la fiche active en Word (.doc)">
+      <i data-lucide="file-text" class="w-4 h-4 text-blue-300 group-hover:text-white shrink-0"></i>
+      <span class="max-w-0 overflow-hidden group-hover:max-w-xs text-xs font-medium whitespace-nowrap transition-all duration-200">Exporter .DOC</span>
+    </button>
+
+    <!-- Impression / PDF -->
+    <button onclick="window.print()" class="group flex items-center gap-0 hover:gap-2 px-2.5 py-2 rounded-xl hover:bg-purple-600/80 transition-all duration-200" title="Imprimer ou enregistrer en PDF">
+      <i data-lucide="printer" class="w-4 h-4 text-purple-300 group-hover:text-white shrink-0"></i>
+      <span class="max-w-0 overflow-hidden group-hover:max-w-xs text-xs font-medium whitespace-nowrap transition-all duration-200">PDF / Imprimer</span>
+    </button>
+
+    <div class="h-5 w-px bg-white/15 mx-0.5"></div>
+
+    <!-- Sauvegarde Disque / Drive -->
+    <button onclick="app.syncToDiskFile()" class="group flex items-center gap-0 hover:gap-2 px-2.5 py-2 rounded-xl hover:bg-emerald-600/80 transition-all duration-200" title="Synchroniser sur votre ordinateur ou dossier Google Drive (Ctrl+S)">
+      <i data-lucide="hard-drive-download" class="w-4 h-4 text-emerald-400 group-hover:text-white shrink-0"></i>
+      <span id="disk-file-label" class="max-w-0 overflow-hidden group-hover:max-w-xs text-xs font-medium whitespace-nowrap transition-all duration-200">Sauvegarder Drive / PC</span>
+    </button>
+
+    <!-- Export JSON -->
+    <button onclick="app.exportJSON()" class="group flex items-center gap-0 hover:gap-2 px-2.5 py-2 rounded-xl hover:bg-white/15 transition-all duration-200" title="Télécharger une sauvegarde complète (.json)">
+      <i data-lucide="download" class="w-4 h-4 text-stone-300 shrink-0"></i>
+      <span class="max-w-0 overflow-hidden group-hover:max-w-xs text-xs font-medium whitespace-nowrap transition-all duration-200">Exporter .JSON</span>
+    </button>
+
+    <!-- Import JSON -->
+    <label class="group flex items-center gap-0 hover:gap-2 px-2.5 py-2 rounded-xl hover:bg-white/15 transition-all duration-200 cursor-pointer" title="Importer une sauvegarde (.json)">
+      <i data-lucide="upload" class="w-4 h-4 text-stone-300 shrink-0"></i>
+      <span class="max-w-0 overflow-hidden group-hover:max-w-xs text-xs font-medium whitespace-nowrap transition-all duration-200">Importer .JSON</span>
+      <input type="file" accept=".json" onchange="app.importJSON(event)" class="hidden">
+    </label>
+  </div>
+
+  <!-- MODALE 1 : GESTIONNAIRE DES TAGS DE DOMINANTES & COULEURS DE SURLIGNAGE -->
+  <div id="tags-modal" onclick="app.closeModal('tags-modal')" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4 no-print">
+    <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-stone-200 space-y-5 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-stone-200 pb-3">
+        <div>
+          <h3 class="font-serif-title font-bold text-lg text-stone-900 flex items-center gap-2">
+            <i data-lucide="tags" class="w-5 h-5 text-amber-700"></i>
+            Personnaliser les Dominantes & Couleurs de surlignage
+          </h3>
+          <p class="text-xs text-stone-500">La couleur choisie surligne automatiquement le titre de la séance dans l'arborescence et sur sa fiche.</p>
+        </div>
+        <button onclick="app.closeModal('tags-modal')" class="p-1.5 rounded-lg hover:bg-stone-100 text-stone-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+
+      <!-- Liste des dominantes existantes -->
+      <div id="tags-manager-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1"></div>
+
+      <!-- Ajout d'une nouvelle dominante -->
+      <div class="pt-3 border-t border-stone-200 bg-stone-50 p-3 rounded-xl space-y-2">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-stone-500 block">Ajouter une nouvelle dominante / étiquette</span>
+        <div class="flex flex-wrap items-center gap-2">
+          <input type="text" id="new-tag-icon" placeholder="Emoji (ex: 🎭)" value="✨" class="w-14 px-2 py-1.5 text-center text-sm bg-white border border-stone-300 rounded-lg">
+          <input type="text" id="new-tag-name" placeholder="Nom (ex: Théâtre, Dictée, Projet...)" class="flex-1 px-3 py-1.5 text-xs bg-white border border-stone-300 rounded-lg">
+          <input type="color" id="new-tag-color" value="#0284c7" class="w-10 h-8 rounded cursor-pointer border border-stone-300 bg-white p-0.5">
+          <button onclick="app.addCustomDominante()" class="px-3 py-1.5 rounded-lg theme-accent-btn text-xs font-semibold">+ Créer le tag</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE 2 : STUDIO DE MISE EN FORME, THÈMES GRAPHIQUES & AMBIANCE CRÉATIVE -->
+  <div id="theme-modal" onclick="app.closeModal('theme-modal')" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4 no-print">
+    <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl border border-stone-200 space-y-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-stone-200 pb-3">
+        <div>
+          <h3 class="font-serif-title font-bold text-xl text-stone-900 flex items-center gap-2">
+            <i data-lucide="palette" class="w-5 h-5 text-amber-700"></i>
+            Studio de Mise en forme & Chartes Graphiques
+          </h3>
+          <p class="text-xs text-stone-500">Personnalisez l'ambiance, les couleurs, les polices, l'organisation et les intitulés de votre site sans toucher au code.</p>
+        </div>
+        <button onclick="app.closeModal('theme-modal')" class="p-1.5 rounded-lg hover:bg-stone-100 text-stone-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <!-- 1. Thèmes prédéfinis (Chartes graphiques) -->
+      <div class="space-y-2.5">
+        <label class="text-xs font-bold uppercase tracking-wider text-stone-500 block">1. Choisir une charte graphique (Mood / Ambiance)</label>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="theme-presets-grid"></div>
+      </div>
+
+      <!-- 2. Couleurs sur-mesure -->
+      <div class="space-y-2.5 pt-2 border-t border-stone-100">
+        <label class="text-xs font-bold uppercase tracking-wider text-stone-500 block">2. Ajuster librement les couleurs du site</label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <label class="p-2.5 rounded-xl border border-stone-200 bg-stone-50 flex items-center justify-between cursor-pointer">
+            <span class="text-xs font-medium text-stone-700">Fond principal</span>
+            <input type="color" id="custom-bg-main" onchange="app.updateCustomColor('bgMain', this.value)" class="w-7 h-7 rounded cursor-pointer border-0">
+          </label>
+          <label class="p-2.5 rounded-xl border border-stone-200 bg-stone-50 flex items-center justify-between cursor-pointer">
+            <span class="text-xs font-medium text-stone-700">Barres latérales</span>
+            <input type="color" id="custom-bg-sidebar" onchange="app.updateCustomColor('bgSidebar', this.value)" class="w-7 h-7 rounded cursor-pointer border-0">
+          </label>
+          <label class="p-2.5 rounded-xl border border-stone-200 bg-stone-50 flex items-center justify-between cursor-pointer">
+            <span class="text-xs font-medium text-stone-700">Barre du haut</span>
+            <input type="color" id="custom-bg-header" onchange="app.updateCustomColor('bgHeader', this.value)" class="w-7 h-7 rounded cursor-pointer border-0">
+          </label>
+          <label class="p-2.5 rounded-xl border border-stone-200 bg-stone-50 flex items-center justify-between cursor-pointer">
+            <span class="text-xs font-medium text-stone-700">Couleur d'accent</span>
+            <input type="color" id="custom-accent" onchange="app.updateCustomColor('accent', this.value)" class="w-7 h-7 rounded cursor-pointer border-0">
+          </label>
+        </div>
+      </div>
+
+      <!-- 3. Typographie générale & Mise en page (Largeur, Arrondis, Sections visibles) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-stone-100">
+        <div class="space-y-3">
+          <label class="text-xs font-bold uppercase tracking-wider text-stone-500 block">3. Polices & Tailles par défaut</label>
+          <div>
+            <span class="text-xs text-stone-600 block mb-1">Police des titres :</span>
+            <select id="studio-title-font" onchange="app.updateAppearanceField('titleFont', this.value)" class="w-full text-xs border border-stone-300 rounded-lg p-2 bg-white">
+              <option value="'Lora', serif">Lora (Sérif littéraire)</option>
+              <option value="'Playfair Display', serif">Playfair Display (Éditorial & Créatif)</option>
+              <option value="'Merriweather', serif">Merriweather (Classique)</option>
+              <option value="'Montserrat', sans-serif">Montserrat (Géométrique moderne)</option>
+              <option value="'Quicksand', sans-serif">Quicksand (Doux & Arrondi)</option>
+            </select>
+          </div>
+          <div>
+            <span class="text-xs text-stone-600 block mb-1">Police du corps de texte :</span>
+            <select id="studio-body-font" onchange="app.updateAppearanceField('fontFamily', this.value)" class="w-full text-xs border border-stone-300 rounded-lg p-2 bg-white">
+              <option value="'Inter', sans-serif">Inter (Épuré & Lisible)</option>
+              <option value="'Lora', serif">Lora (Sérif)</option>
+              <option value="'Quicksand', sans-serif">Quicksand (Créatif & Doux)</option>
+              <option value="'Montserrat', sans-serif">Montserrat (Moderne)</option>
+              <option value="'Georgia', serif">Georgia (Roman)</option>
+            </select>
+          </div>
+          <div>
+            <span class="text-xs text-stone-600 block mb-1">Taille de texte générale :</span>
+            <select id="studio-font-size" onchange="app.updateAppearanceField('fontSize', this.value)" class="w-full text-xs border border-stone-300 rounded-lg p-2 bg-white">
+              <option value="14px">Compacte (14px)</option>
+              <option value="15px">Confortable (15px)</option>
+              <option value="16px">Grande (16px)</option>
+              <option value="18px">Très grande (18px)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <label class="text-xs font-bold uppercase tracking-wider text-stone-500 block">4. Identité créative & Mise en page</label>
+          <div class="flex gap-2">
+            <div class="w-20">
+              <span class="text-xs text-stone-600 block mb-1">Icône :</span>
+              <input type="text" id="studio-site-icon" oninput="app.updateAppearanceField('siteIcon', this.value)" class="w-full text-center text-base border border-stone-300 rounded-lg p-1.5">
+            </div>
+            <div class="flex-1">
+              <span class="text-xs text-stone-600 block mb-1">Titre du site :</span>
+              <input type="text" id="studio-site-title" oninput="app.updateAppearanceField('siteTitle', this.value)" class="w-full text-xs border border-stone-300 rounded-lg p-2">
+            </div>
+          </div>
+          <div>
+            <span class="text-xs text-stone-600 block mb-1">Image de bannière (URL optionnelle ou laisser vide) :</span>
+            <input type="text" id="studio-banner-url" oninput="app.updateAppearanceField('bannerUrl', this.value)" placeholder="Ex: https://images.unsplash.com/..." class="w-full text-xs border border-stone-300 rounded-lg p-2">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-xs text-stone-600 block mb-1">Largeur des fiches :</span>
+              <select id="studio-max-width" onchange="app.updateAppearanceField('maxWidth', this.value)" class="w-full text-xs border border-stone-300 rounded-lg p-2 bg-white">
+                <option value="880px">Centrée (880px)</option>
+                <option value="1080px">Standard (1080px)</option>
+                <option value="100%">Pleine largeur (100%)</option>
+              </select>
+            </div>
+            <div>
+              <span class="text-xs text-stone-600 block mb-1">Style des blocs :</span>
+              <select id="studio-card-radius" onchange="app.updateAppearanceField('cardRadius', this.value)" class="w-full text-xs border border-stone-300 rounded-lg p-2 bg-white">
+                <option value="6px">Sobre (6px)</option>
+                <option value="14px">Doux (14px)</option>
+                <option value="22px">Bulle créative (22px)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Afficher / Masquer des blocs sur les fiches de séance -->
+      <div class="pt-2 border-t border-stone-100 space-y-2">
+        <label class="text-xs font-bold uppercase tracking-wider text-stone-500 block">5. Blocs affichés sur vos fiches de séance (Organisation modulable)</label>
+        <div class="flex flex-wrap gap-3 text-xs">
+          <label class="flex items-center gap-1.5 bg-stone-100 px-3 py-1.5 rounded-lg cursor-pointer">
+            <input type="checkbox" id="toggle-sec-dates" onchange="app.toggleSectionVisibility('showDates', this.checked)">
+            <span>Dates & Durées</span>
+          </label>
+          <label class="flex items-center gap-1.5 bg-stone-100 px-3 py-1.5 rounded-lg cursor-pointer">
+            <input type="checkbox" id="toggle-sec-obj" onchange="app.toggleSectionVisibility('showObjectifs', this.checked)">
+            <span>Objectifs & Compétences</span>
+          </label>
+          <label class="flex items-center gap-1.5 bg-stone-100 px-3 py-1.5 rounded-lg cursor-pointer">
+            <input type="checkbox" id="toggle-sec-details" onchange="app.toggleSectionVisibility('showDetailsGrid', this.checked)">
+            <span>Supports / Vigilance / Devoirs / Notes</span>
+          </label>
+          <label class="flex items-center gap-1.5 bg-stone-100 px-3 py-1.5 rounded-lg cursor-pointer">
+            <input type="checkbox" id="toggle-sec-medias" onchange="app.toggleSectionVisibility('showMedias', this.checked)">
+            <span>Galerie Médias (Images/Diapos/Vidéos)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE D'APERÇU D'IMAGE / MÉDIA EN GRAND -->
+  <div id="media-modal" onclick="app.closeModal('media-modal')" class="fixed inset-0 bg-black/75 z-50 hidden items-center justify-center p-6 no-print">
+    <div onclick="event.stopPropagation()" class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-4 py-3 bg-stone-900 text-white flex items-center justify-between">
+        <h3 id="modal-media-title" class="font-medium text-sm truncate">Aperçu du support</h3>
+        <button onclick="app.closeModal('media-modal')" class="p-1 hover:bg-stone-800 rounded"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div id="modal-media-body" class="p-4 flex-1 overflow-auto flex items-center justify-center bg-stone-100 min-h-[300px]"></div>
+    </div>
+  </div>
+
+  <!-- LOGIQUE JAVASCRIPT DE L'APPLICATION -->
+  <script>
+    // Palettes de thèmes créatifs prédéfinis
+    const THEME_PRESETS = [
+      {
+        id: "parchemin",
+        name: "Carnet Parchemin & Ambre",
+        desc: "Chaleureux, littéraire et reposant",
+        icon: "📜",
+        bgMain: "#FAF8F5",
+        bgSidebar: "#F3EFEA",
+        bgHeader: "#1C1917",
+        accent: "#B45309",
+        titleFont: "'Lora', serif",
+        bodyFont: "'Inter', sans-serif"
+      },
+      {
+        id: "sauge",
+        name: "Atelier Botanique & Sauge",
+        desc: "Doux, naturel et apaisant",
+        icon: "🌿",
+        bgMain: "#F4F7F4",
+        bgSidebar: "#E6EFE8",
+        bgHeader: "#1E352F",
+        accent: "#2E6F40",
+        titleFont: "'Lora', serif",
+        bodyFont: "'Quicksand', sans-serif"
+      },
+      {
+        id: "poudree",
+        name: "Bibliothèque Rose Poudré",
+        desc: "Créatif, poétique et délicat",
+        icon: "🌸",
+        bgMain: "#FDF8F8",
+        bgSidebar: "#F7ECEC",
+        bgHeader: "#3B1F2B",
+        accent: "#BE185D",
+        titleFont: "'Playfair Display', serif",
+        bodyFont: "'Inter', sans-serif"
+      },
+      {
+        id: "celeste",
+        name: "Cabinet Bleu Céleste",
+        desc: "Clair, structuré et lumineux",
+        icon: "🌊",
+        bgMain: "#F5F8FC",
+        bgSidebar: "#EBF1F8",
+        bgHeader: "#0F172A",
+        accent: "#0369A1",
+        titleFont: "'Merriweather', serif",
+        bodyFont: "'Inter', sans-serif"
+      },
+      {
+        id: "terracotta",
+        name: "Studio Terracotta & Soleil",
+        desc: "Artistique, vivant et chaleureux",
+        icon: "☀️",
+        bgMain: "#FFFBF5",
+        bgSidebar: "#FDEEDC",
+        bgHeader: "#431407",
+        accent: "#C2410C",
+        titleFont: "'Playfair Display', serif",
+        bodyFont: "'Quicksand', sans-serif"
+      },
+      {
+        id: "minimal",
+        name: "Ardoise Minimaliste",
+        desc: "Ultra-épuré, neutre et moderne",
+        icon: "✒️",
+        bgMain: "#F9FAFB",
+        bgSidebar: "#F3F4F6",
+        bgHeader: "#111827",
+        accent: "#374151",
+        titleFont: "'Montserrat', sans-serif",
+        bodyFont: "'Inter', sans-serif"
+      }
+    ];
+
+    // Dominantes par défaut avec couleurs Hexadécimales personnalisables
+    const DEFAULT_DOMINANTES = {
+      "Lecture": { color: "#2563eb", icon: "📖" },
+      "Langue": { color: "#059669", icon: "🔤" },
+      "Écriture": { color: "#d97706", icon: "✍️" },
+      "Écrit": { color: "#d97706", icon: "✍️" },
+      "Oral": { color: "#9333ea", icon: "🗣️" },
+      "Histoire des arts": { color: "#e11d48", icon: "🎨" },
+      "Évaluation": { color: "#475569", icon: "🎓" }
+    };
+
+    // Données initiales extraites du Google Sheet "Programmation 5ème 2026-2027"
+    const INITIAL_DATA = {
+      settings: {
+        siteIcon: "📚",
+        siteTitle: "Programmation & Séquences 5ème",
+        siteSubtitle: "Carnet de bord pédagogique",
+        bannerUrl: "",
+        bgMain: "#FAF8F5",
+        bgSidebar: "#F3EFEA",
+        bgHeader: "#1C1917",
+        accent: "#B45309",
+        titleFont: "'Lora', serif",
+        fontFamily: "'Inter', sans-serif",
+        fontSize: "15px",
+        maxWidth: "1080px",
+        cardRadius: "14px",
+        compactTabs: false,
+        calendarMonth: "2026-10",
+        showDates: true,
+        showObjectifs: true,
+        showDetailsGrid: true,
+        showMedias: true,
+        customLabels: {
+          sidebarPA: "Projets d'Apprentissage"
+        }
+      },
+      dominantes: JSON.parse(JSON.stringify(DEFAULT_DOMINANTES)),
+      brainstorming: {
+        scratchpad: "<h3>Idées en vrac & Pistes pédagogiques</h3><ul><li><b>Les Quatre Filles du Docteur March :</b> Préparer le bulletin des filles March (courrier des lecteurs, poème, article du XIXe siècle).</li><li><b>Rituel oral :</b> Continuer à tirer des cartes du <i>Bocal à révision</i> en début de séance (5 min).</li><li><b>5A / 5C :</b> Vérifier le décalage de rythme sur la correction du journal du lecteur entre les deux classes.</li></ul>",
+        cards: [
+          {
+            id: "idea-1",
+            category: "Activité",
+            color: "#f59e0b",
+            title: "Journal du lecteur & Portraits chinois",
+            text: "Réutiliser les propositions des 5C : Animaux (Meg = ours, Jo = chat sauvage, Beth = souris, Amy = écureuil) et ambiances sonores pour préparer la fiche personnage."
+          },
+          {
+            id: "idea-2",
+            category: "Évaluation",
+            color: "#10b981",
+            title: "Test de lecture rentrée (Chapitres 4 & 5)",
+            text: "Prévoir un QCM + 2 questions courtes sur 'Meg va à la foire aux vanités' et 'Le secret de Jo' + contexte historique."
+          },
+          {
+            id: "idea-3",
+            category: "Idée de texte",
+            color: "#3b82f6",
+            title: "Groupement Voyage en poésie",
+            text: "Rassembler les poèmes pour le PA 3 « Du monde entier au cœur du monde » et prévoir des illustrations sonores."
+          }
+        ]
+      },
+      sequences: [
+        {
+          id: "pa-1",
+          code: "PA 1",
+          titre: "La figure du héros, de l’Antiquité à nos jours",
+          entree: "Héros et Héroïnes : destins romanesques",
+          competencePrincipale: "Oral",
+          dureePrevue: "Prévue : 2 semaines",
+          questionnement: "Qu’est-ce qui définit une héroïne ou un héros ? Sommes-nous tous des héros ?",
+          objectifGeneral: "L’élève doit être capable de définir les caractéristiques stéréotypiques d’un héros ou d’une héroïne, mais aussi comprendre l’évolution des représentations héroïques au fil des âges.",
+          corpus: "• Le combat d’Achille contre Hector, Céramique peinte, 500-490 av. J.-C.\n• L’adoubement d’un chevalier, peint par Edmund Blair (1900)\n• Ordinary people with extraordinary courage, couverture de Comics (hommage aux héros du 11/09/2001)\n• Vidéo de la BNF : « Héros, d’Achille à Zidane »\n• Brigitte Heller, Petites Histoires des expressions de la mythologie, 2013\n• « La bataille d’Hector et d’Achille », L’Iliade, Homère\n• Perceval le Gallois ou le Conte du Graal, Chrétien de Troyes, « La rencontre avec Gornemant »\n• Le Comte de Monte-Cristo, film de 2024 (extrait)\n• One-Punch Man, extrait du Tome 1",
+          evaluationSommative: "« Présenter votre héros » (dominante orale) --> Présentation courte d’un héros au choix, à partir d’un support préparé en classe et à la maison : l’élève doit présenter un héros / une héroïne, fictif ou réel, en argumentant sur son aspect « héroïque », en réinvestissant les apprentissages de la séquence.",
+          competencesTravaillees: "ÉCRIT :\n• Écrire un court texte en autonomie pour synthétiser des idées et formuler une définition.\n• Trier des informations issues de recherches pour remplir une fiche « Carte d'identité » de manière concise.\n• Organiser et agencer l'espace d'une feuille (affiche A3) en articulant textes préparés au brouillon et supports visuels.\n\nORAL :\n• Prendre la parole en continu pendant 5 minutes devant la classe pour présenter un sujet préparé.\n• Argumenter à l'oral sur l'aspect « héroïque » d'un personnage en s'appuyant sur un support visuel.\n• Travailler en groupe pour restituer à l'oral l'analyse d'un texte et participer à une synthèse collective.\n\nLECTURE :\n• Lire et analyser un groupement de textes (héros grecs, chevaliers, super-héros).",
+          medias: [
+            { id: "m-pa1-1", type: "video", title: "Vidéo BNF : « Héros, d’Achille à Zidane »", url: "https://essentiels.bnf.fr/", note: "Support d'introduction du groupement" },
+            { id: "m-pa1-2", type: "image", title: "L'adoubement (Edmund Blair Leighton, 1900)", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Edmund_Blair_Leighton_-_The_Accolade.jpg/400px-Edmund_Blair_Leighton_-_The_Accolade.jpg", note: "Analyse de l'image chevaleresque" }
+          ],
+          seances: [
+            {
+              id: "sea-c1-1",
+              numero: "S1",
+              titre: "S1 - D'Achille aux super-héros : qu'est-ce qu'un héros ?",
+              dominante: "Oral",
+              dateDebut: "2026-09-14",
+              dateFin: "2026-09-18",
+              dureePrevue: "1h30",
+              dureeReelle: "1h30",
+              objectifs: "Définir les caractéristiques stéréotypiques d'un héros et observer leur évolution à travers un corpus de textes et d'images.",
+              competences: "Prendre la parole à l'oral • Lire et analyser un groupement de textes et d'images • Synthétiser une définition.",
+              miseEnOeuvre: "<h3>1. Accroche & représentation initiale (15 min)</h3><p>Brainstorming collectif au tableau autour du mot <b>« Héros / Héroïne »</b>. Visionnage de l'extrait vidéo de la BNF <i>« Héros, d'Achille à Zidane »</i>.</p><h3>2. Travail en îlots sur le corpus iconographique et textuel (30 min)</h3><ul><li>Céramique : Le combat d'Achille contre Hector</li><li>Tableau d'Edmund Blair : L'adoubement d'un chevalier</li><li>Couverture de Comics : <i>Ordinary people with extraordinary courage</i></li><li>Extrait de <i>One-Punch Man</i></li></ul><h3>3. Mise en commun et trace écrite (10 min)</h3><p>Rédaction autonome d'une première définition synthétique du héros dans le cahier.</p>",
+              vigilance: "Veiller à bien répartir la parole au sein des groupes lors de la restitution orale.",
+              supports: "• Diaporama du corpus d'images\n• Vidéo BNF\n• Fiche « Carte d'identité du héros »",
+              devoirs: "Choisir un héros ou une héroïne (fictif ou réel) pour préparer l'affiche A3 et la présentation orale.",
+              notes: "Bonne implication à l'oral.",
+              liens: ["sea-c2-1"],
+              medias: [
+                { id: "m-s1-1", type: "slides", title: "Diaporama Corpus Héros (Local / Drive)", url: "Diapo_PA1_Heros.pptx", note: "À projeter en classe" }
+              ],
+              checklist: { supportsPrets: true, diapoPret: true, realisee: true }
+            }
+          ]
+        },
+        {
+          id: "pa-2",
+          code: "PA 2",
+          titre: "Les Quatre Filles du Docteur March",
+          entree: "Héros et Héroïnes : destins romanesques",
+          competencePrincipale: "Écrit",
+          dureePrevue: "Prévue : 4 semaines",
+          questionnement: "Qu'est-ce qui fait de ces jeunes filles ordinaires des héroïnes romanesques ?",
+          objectifGeneral: "L’élève doit être capable de définir ce qui caractérise un·e héros·ïne romanesque selon ses qualités morales, en le distinguant du modèle épique ou médiéval vu au C1, et d’identifier le contexte et les problématiques spécifiques qui influencent le développement des héroïnes dans le roman.",
+          corpus: "« Les Quatre Filles du docteur March », Louisa May Alcott — Édition « Étonnants classiques » (abrégé) + extraits filmiques.",
+          evaluationSommative: "Dominante écrite : Les élèves rédigent un court article de presse locale (ancré au XIXe siècle) qui met en scène un évènement du livre. L'élève doit raconter les faits de manière journalistique tout en argumentant sur la dimension héroïque de l'acte, réinvestissant ainsi les apprentissages linguistiques et lexicaux de la séquence. L’objectif est de constituer un bulletin similaire à celui des filles March (courrier des lecteurs, poème, histoire, etc.).",
+          competencesTravaillees: "ÉCRIT :\n• Rédiger un écrit d'invention cadré (l'article de presse) en respectant ses codes : titre informatif, phrase d'accroche, récit des faits.\n• Organiser ses idées au brouillon pour mettre en valeur un acte du quotidien en exploit héroïque.\n\nORAL :\n• Pratiquer la lecture expressive à voix haute lors de l'étude des dialogues du roman pour incarner le caractère des personnages.\n• Participer à des échanges en classe pour formuler et justifier son point de vue sur la définition d'un héros.\n\nLECTURE :\n• Lire et comprendre une œuvre intégrale adaptée à l'âge des élèves en repérant la dynamique entre les personnages.\n• Identifier les caractéristiques implicites et explicites d'un personnage pour en dresser le portrait psychologique et moral.\n\nVOCABULAIRE & ORTHOGRAPHE :\n• Maîtriser le lexique des qualités morales et des émotions, ainsi que la morphologie du verbe (temps simples et composés).",
+          medias: [
+            { id: "m-pa2-1", type: "doc", title: "Le Journal du Lecteur n°1 (PDF)", url: "Journal_du_lecteur_March.pdf", note: "Carnet distribué aux 5A et 5C" }
+          ],
+          seances: [
+            {
+              id: "sea-c2-1",
+              numero: "S1",
+              titre: "S1 - Introduction, lecture du premier chapitre et entrée dans l'oeuvre",
+              dominante: "Lecture",
+              dateDebut: "2026-10-08",
+              dateFin: "2026-10-09",
+              dureePrevue: "1h30",
+              dureeReelle: "2h",
+              objectifs: "Je comprends l’enjeu général du roman, son contexte historique et je peux résumer l’incipit en deux phrases claires.",
+              competences: "• Acquérir et mobiliser des connaissances littéraires et culturelles\n• Comprendre, interpréter et apprécier un texte\n• Rédiger un texte court pour rendre compte de sa réception de l'œuvre",
+              miseEnOeuvre: "<h3>1. Lecture expressive à haute voix du chapitre 1</h3><p>Distribution des rôles (<b>1 élève par sœur + le professeur fait le narrateur</b>) &rarr; permet d'inclure les élèves dans une lecture qui n'est pas une découverte, donc pas de déchiffrage normalement.</p><h3>2. Relecture d'un passage (p. 35-37) et correction des questions</h3><p>Correction des questions de compréhension données à la maison :</p><ul><li>Que se passe-t-il dans ce texte ? Quel est le cadre spatio-temporel ?</li><li>Portrait contrasté des quatre sœurs (Meg, Jo, Beth, Amy) à travers leurs répliques.</li></ul><h3>3. Journal du lecteur n°1</h3><p>Portrait chinois des quatre sœurs (animaux, ambiances sonores) et rédaction d'un résumé de l'incipit en deux phrases claires.</p>",
+              vigilance: "La lecture du chapitre en classe entière => à ne pas faire si manque de concentration.",
+              supports: "• Extrait 1 Chapitre 1 : p. 35-37\n• Extrait 2 et 3 : p. 41-43 ; p. 46-47\n• Le journal du lecteur n°1",
+              devoirs: "• Répondre aux questions du journal du lecteur",
+              notes: "5C : correction du journal déjà faite en classe ; pas eu le temps avec 5A, à faire lundi.\n\nNotes — Les 5C ont proposé :\n--> ANIMAUX : Meg = ours ; Jo = chat sauvage / chien ; Beth = chat d'intérieur / souris ; Amy = Lapin / Écureuil\n--> MUSIQUE/AMBIANCE SONORE : Jo = coups de tonnerre / musique de films d'aventure ; Amy = musique de manège ou de film Disney ; Beth = ronronnement, musique douce.",
+              liens: ["sea-c2-3"],
+              medias: [
+                { id: "m-c2s1-1", type: "doc", title: "Journal du lecteur n°1", url: "Journal_lecteur_1.pdf", note: "Support élève" }
+              ],
+              checklist: { supportsPrets: true, diapoPret: true, realisee: true }
+            },
+            {
+              id: "sea-c2-2",
+              numero: "Langue 1",
+              titre: "CHANTIER DE LANGUE - Le verbe (révision)",
+              dominante: "Langue",
+              dateDebut: "2026-10-08",
+              dateFin: "2026-10-12",
+              dureePrevue: "1h",
+              dureeReelle: "1h30",
+              objectifs: "Trouver le verbe conjugué dans une phrase simple ou complexe et son sujet. Apprendre les techniques de reconnaissance et manipulations associées.",
+              competences: "• Identifier le verbe conjugué et son sujet dans des cas variés (phrases averbales, sujet éloigné, temps simples et composés).\n• Pratiquer les manipulations syntaxiques (encadrement par ne... pas, changement de temps, pronominalisation).",
+              miseEnOeuvre: "<h3>1. Premier exercice d'observation</h3><p>À partir d'un paragraphe, trouver le verbe dans les différentes phrases (plusieurs cas de figure : phrases averbales, sujet dénominateur commun, temps simple et temps composé).</p><p>&rarr; Les élèves volontaires viennent <u>souligner le verbe</u> au tableau et entourer le sujet. Débat avec le reste de la classe, correction potentielle.</p><h3>2. Structuration : les 3 techniques</h3><p>On note sur le cahier les 3 techniques de manipulation syntaxique pour repérer le verbe et son sujet.</p><h3>3. Entraînement</h3><p>Distribution de la fiche mémo et de la fiche d'exercices polycopiée.</p>",
+              vigilance: "Gestion du temps et des polycopiés.",
+              supports: "• Fiche passé composé\n• Fiche mémo\n• Fiche d'exercice\n• Exo polycopié",
+              devoirs: "• Apprendre le passé composé pour la semaine prochaine\n• Faire des exos sur les fonctions et le verbe",
+              notes: "Prévoir 10 min en début de S2 pour corriger les exercices restants.",
+              liens: ["sea-c2-4", "sea-c2-3"],
+              medias: [],
+              checklist: { supportsPrets: true, diapoPret: true, realisee: true }
+            },
+            {
+              id: "sea-c2-3",
+              numero: "S2",
+              titre: "S2 - Contextualisation",
+              dominante: "Histoire des arts",
+              dateDebut: "2026-10-12",
+              dateFin: "2026-10-15",
+              dureePrevue: "1h30",
+              dureeReelle: "",
+              objectifs: "Je suis capable de comprendre comment le contexte d'écriture de l'œuvre peut influencer la notion d'héroïsme dans le roman.",
+              competences: "• Acquérir et mobiliser des connaissances littéraires et culturelles\n• Comprendre, interpréter et apprécier un texte\n• Découvrir une œuvre dans des contextes artistiques variés\n• Écrire des textes d'invention et de réflexion, pour soi et pour autrui\n• Lire des récits qui mettent en scène des figures héroïques",
+              miseEnOeuvre: "<p><b>Rituel de début de cours (10 min) :</b> Correction des exos de grammaire à faire sur le verbe + Rendu des dictées aux 5C &rarr; annonce de la dictée de jeudi (fiche de révision à distribuer).</p><hr class='my-3 border-stone-300'><h3>1. Vérification de la lecture du Chapitre 2 à la maison (8-10 min)</h3><p>Questions rapides de lecture : Quels obstacles matériels Jo et Meg rencontrent-elles ?</p><h3>2. Étude des 3 documents de contextualisation</h3><p>Étude de textes et d'images à partir de l'édition étudiée (Guerre de Sécession, condition féminine au XIXe siècle, Louisa May Alcott).</p><h3>3. Synthèse écrite</h3><p>Synthèse à trous ou carte mentale à remplir si manque de temps.</p>",
+              vigilance: "Gestion du temps sur la correction.",
+              supports: "• Diapo avec les questions / ou écrire au tableau\n• Les 3 documents d'étude de textes et d'images, à partir de l'édition étudiée\n• Une synthèse écrite / à trous / carte mentale à remplir si manque de temps",
+              devoirs: "• Finir les questions sur les documents si cela n'est pas fini en classe",
+              notes: "",
+              liens: ["sea-c2-2", "sea-c2-5"],
+              medias: [
+                { id: "m-c2s2-1", type: "slides", title: "Diapo Questions & Contexte XIXe", url: "Diapo_S2_Contexte.pptx", note: "Questions + 3 documents" }
+              ],
+              checklist: { supportsPrets: true, diapoPret: true, realisee: true }
+            },
+            {
+              id: "sea-c2-4",
+              numero: "Langue 2",
+              titre: "CHANTIER DE LANGUE - Le verbe --> application",
+              dominante: "Langue",
+              dateDebut: "2026-10-15",
+              dateFin: "2026-10-15",
+              dureePrevue: "1h",
+              dureeReelle: "",
+              objectifs: "Distinguer le verbe conjugué aux temps simples et aux temps composés.",
+              competences: "• Conjuguer au passé composé (auxiliaires être et avoir).\n• Différencier temps simples et temps composés dans un texte.",
+              miseEnOeuvre: "<h3>1. Défi conjugaison : passé composé (10 min)</h3><p>4 élèves au tableau sur les verbes : 1) <i>parler</i>, 2) <i>vendre</i>, 3) <i>aller</i>, 4) <i>devenir</i>.</p><h3>2. Correction des exercices sur le verbe (10 min)</h3><ul><li>Rappel de la feuille mémo</li><li>Ateliers 1, 2 et 3 au tableau : les élèves viennent corriger au tableau, débat d'interprétation en groupe classe.</li></ul><h3>3. Correction de la dictée</h3><p>Retour collectif sur les accords sujet-verbe et les participes passés.</p>",
+              vigilance: "Rythmer le passage des élèves au tableau.",
+              supports: "• Feuille mémo verbe\n• Correction de la dictée",
+              devoirs: "Revoir la fiche mémo et les verbes au passé composé.",
+              notes: "",
+              liens: ["sea-c2-2"],
+              medias: [],
+              checklist: { supportsPrets: true, diapoPret: false, realisee: true }
+            },
+            {
+              id: "sea-c2-5",
+              numero: "S3",
+              titre: "S3 - Chapitre 3, La dispute entre Amy et Jo : nouvelles représentations des héroïnes ?",
+              dominante: "Lecture",
+              dateDebut: "2026-10-15",
+              dateFin: "2026-10-16",
+              dureePrevue: "2h",
+              dureeReelle: "",
+              objectifs: "Je comprends l'évolution psychologique des personnages et l'héroïsme face à ses propres défauts.",
+              competences: "• Interpréter les émotions et les valeurs portées par les personnages dans un conflit, en s’appuyant sur des indices textuels et des procédés d’écriture.\n• Rédiger un texte d’invention qui prolonge la scène étudiée, en adoptant le point de vue d’un personnage et en réinvestissant les procédés d’écriture observés.\n• Justifier son point de vue de lecteur en confrontant l'extrait filmique et le texte.",
+              miseEnOeuvre: "<h3>1. Étude d'un extrait du film : les héroïnes en conflit (8 min — collectif)</h3><p>Étude du passage où Amy brûle le manuscrit de Jo + la chute sur la glace, en deux temps. Avant visionnage de l'extrait 1, contextualisation.</p><p><b>But :</b> Regarder l'extrait et identifier les émotions des personnages (Jo et Amy). Noter une émotion et un indice visuel qui la révèle (posture, regard, ton).</p><h3>2. Confrontation avec le texte d'Alcott (Chapitre 3)</h3><p>Relevé du champ lexical de la colère et de la culpabilité. En quoi vaincre sa colère relève-t-il d'un héroïsme moral et intime ?</p><h3>3. Écriture d'invention courte</h3><p>Rédiger quelques lignes du journal intime de Jo ou d'Amy le soir du drame sur la glace.</p>",
+              vigilance: "Bien distinguer les deux temps de l'extrait vidéo (le manuscrit brûlé / la patinoire).",
+              supports: "• Extrait vidéo du film Les Filles du Docteur March\n• Chapitre 3 de l'édition Étonnants Classiques",
+              devoirs: "• Donner à lire les chapitres 4 et 5 pendant les vacances (Meg va à la foire aux vanités + Le secret de Jo) ==> en vue d'un petit test de lecture à la rentrée (questions sur le roman, le contexte et les notions vues en cours).\n• Journal du lecteur ou du personnage pour l'œuvre en lecture cursive.",
+              notes: "Fait avec les 5C (juste activité 1 : regarder l'extrait du film et en discuter) avant les vacances. Pas commencé avec les 5A.",
+              liens: ["sea-c2-1", "sea-c2-3"],
+              medias: [
+                { id: "m-c2s3-1", type: "video", title: "Extrait Film : Amy brûle le manuscrit & Chute sur la glace", url: "Extrait_March_Chap3.mp4", note: "Durée : 8 min (en 2 parties)" }
+              ],
+              checklist: { supportsPrets: true, diapoPret: true, realisee: false }
+            }
+          ]
+        },
+        {
+          id: "pa-3",
+          code: "PA 3",
+          titre: "Voyage en poésie : « Du monde entier au cœur du monde »",
+          entree: "Voyager en poésie",
+          competencePrincipale: "Lecture",
+          dureePrevue: "Prévue : 3 semaines",
+          questionnement: "Comment la poésie permet-elle de parcourir le monde et d'habiter autrement le réel ?",
+          objectifGeneral: "Découvrir la diversité des voix poétiques et comprendre comment les images poétiques et les sonorités invitent au voyage.",
+          corpus: "Groupement de poèmes (« Du monde entier au cœur du monde »).",
+          evaluationSommative: "Création d'une anthologie poétique illustrée et mise en voix d'un poème choisi.",
+          competencesTravaillees: "LECTURE :\n• Lire des poèmes variés et repérer les procédés poétiques.\nORAL :\n• Dire un poème de manière expressive devant la classe.\nÉCRIT :\n• Rédiger une strophe poétique ou un commentaire sensible.",
+          medias: [],
+          seances: []
+        }
+      ]
+    };
+
+    const app = {
+      data: null,
+      openTabs: [], // [{ id, type: 'sequence' | 'seance', seqId, seaId }]
+      activeTabId: null,
+      currentMainView: 'workspace', // 'workspace' | 'calendar' | 'brainstorm'
+      currentFilter: 'ALL',
+      rightTab: 'brainstorm',
+      showLeft: true,
+      showRight: true,
+      fileHandle: null,
+      savedRange: null, // Pour conserver la sélection dans l'éditeur riche lors d'un clic sur un select/color picker
+      historyStack: [],
+      redoStack: [],
+      isUndoRedoAction: false,
+
+      init() {
+        const saved = localStorage.getItem('atelier_pedagogique_5eme_v3');
+        if (saved) {
+          try {
+            this.data = JSON.parse(saved);
+          } catch (e) {
+            this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
+          }
+        } else {
+          // Migration éventuelle depuis v2
+          const oldSaved = localStorage.getItem('atelier_pedagogique_5eme_v2');
+          if (oldSaved) {
+            try {
+              const parsed = JSON.parse(oldSaved);
+              this.data = Object.assign(JSON.parse(JSON.stringify(INITIAL_DATA)), parsed);
+              this.data.settings = Object.assign(JSON.parse(JSON.stringify(INITIAL_DATA.settings)), parsed.settings || {});
+              this.data.dominantes = parsed.dominantes || JSON.parse(JSON.stringify(DEFAULT_DOMINANTES));
+            } catch (e) {
+              this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
+            }
+          } else {
+            this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
+          }
+        }
+
+        if (!this.data.dominantes) {
+          this.data.dominantes = JSON.parse(JSON.stringify(DEFAULT_DOMINANTES));
+        }
+        if (!this.data.settings.customLabels) {
+          this.data.settings.customLabels = { sidebarPA: "Projets d'Apprentissage" };
+        }
+
+        // Enregistrer l'état initial dans la pile Undo
+        this.pushHistoryState();
+
+        // Appliquer le thème et les variables CSS
+        this.applyAppearanceToDOM();
+
+        // Ouvrir par défaut le PA 2 et sa première séance
+        this.openTab({ id: 'tab-pa-2', type: 'sequence', seqId: 'pa-2' }, false);
+        this.openTab({ id: 'tab-sea-c2-1', type: 'seance', seqId: 'pa-2', seaId: 'sea-c2-1' }, true);
+
+        this.setupResizers();
+        this.setupKeyboardShortcuts();
+        this.setupSelectionSaver();
+        this.renderAll();
+      },
+
+      // --- UTILITAIRES COULEURS (HEX -> RGBA PASTEL POUR SURLIGNAGE CLAIR) ---
+      hexToRgba(hex, alpha = 0.16) {
+        if (!hex || typeof hex !== 'string') return `rgba(180, 83, 9, ${alpha})`;
+        let c = hex.replace('#', '');
+        if (c.length === 3) c = c.split('').map(x => x + x).join('');
+        const num = parseInt(c, 16);
+        if (isNaN(num)) return `rgba(180, 83, 9, ${alpha})`;
+        const r = (num >> 16) & 255;
+        const g = (num >> 8) & 255;
+        const b = num & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      },
+
+      getDominanteStyle(domName) {
+        const d = (this.data.dominantes && this.data.dominantes[domName]) || { color: "#64748b", icon: "📌" };
+        return {
+          color: d.color,
+          icon: d.icon || "📌",
+          bgSoft: this.hexToRgba(d.color, 0.15),
+          bgActive: this.hexToRgba(d.color, 0.28),
+          borderSoft: this.hexToRgba(d.color, 0.4)
+        };
+      },
+
+      // --- HISTORIQUE ANNULER / RÉTABLIR (UNDO / REDO) ---
+      pushHistoryState() {
+        if (this.isUndoRedoAction) return;
+        const snapshot = JSON.stringify({
+          sequences: this.data.sequences,
+          brainstorming: this.data.brainstorming,
+          dominantes: this.data.dominantes,
+          settings: this.data.settings
+        });
+        if (this.historyStack.length > 0 && this.historyStack[this.historyStack.length - 1] === snapshot) return;
+        this.historyStack.push(snapshot);
+        if (this.historyStack.length > 35) this.historyStack.shift();
+        this.redoStack = [];
+        this.updateUndoRedoButtons();
+      },
+
+      undo() {
+        if (this.historyStack.length > 1) {
+          this.isUndoRedoAction = true;
+          const current = this.historyStack.pop();
+          this.redoStack.push(current);
+          const prev = JSON.parse(this.historyStack[this.historyStack.length - 1]);
+          Object.assign(this.data, prev);
+          this.saveData(false);
+          this.applyAppearanceToDOM();
+          this.renderAll();
+          this.updateUndoRedoButtons();
+          this.isUndoRedoAction = false;
+        } else {
+          document.execCommand('undo');
+        }
+      },
+
+      redo() {
+        if (this.redoStack.length > 0) {
+          this.isUndoRedoAction = true;
+          const nextStr = this.redoStack.pop();
+          this.historyStack.push(nextStr);
+          const next = JSON.parse(nextStr);
+          Object.assign(this.data, next);
+          this.saveData(false);
+          this.applyAppearanceToDOM();
+          this.renderAll();
+          this.updateUndoRedoButtons();
+          this.isUndoRedoAction = false;
+        } else {
+          document.execCommand('redo');
+        }
+      },
+
+      updateUndoRedoButtons() {
+        const uBtn = document.getElementById('btn-undo');
+        const rBtn = document.getElementById('btn-redo');
+        if (uBtn) uBtn.disabled = this.historyStack.length <= 1;
+        if (rBtn) rBtn.disabled = this.redoStack.length === 0;
+      },
+
+      saveData(recordHistory = true) {
+        if (recordHistory) {
+          clearTimeout(this._histTimer);
+          this._histTimer = setTimeout(() => this.pushHistoryState(), 350);
+        }
+        localStorage.setItem('atelier_pedagogique_5eme_v3', JSON.stringify(this.data));
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const el = document.getElementById('save-time');
+        if (el) el.textContent = `Sauvegardé (${timeStr})`;
+        this.updateStats();
+      },
+
+      updateStats() {
+        const nbSeq = this.data.sequences.length;
+        const nbSea = this.data.sequences.reduce((acc, s) => acc + s.seances.length, 0);
+        const el = document.getElementById('stats-counter');
+        if (el) el.textContent = `${nbSeq} PA • ${nbSea} séances`;
+      },
+
+      // --- PRÉSERVATION DE LA SÉLECTION ET FORMATAGE RICHE FONCTIONNEL ---
+      setupSelectionSaver() {
+        const saveSel = () => {
+          const sel = window.getSelection();
+          if (sel && sel.rangeCount > 0) {
+            const range = sel.getRangeAt(0);
+            const editor = document.getElementById('seance-rich-editor') || document.getElementById('brainstorm-rich-editor');
+            if (editor && editor.contains(range.commonAncestorContainer)) {
+              this.savedRange = range.cloneRange();
+            }
+          }
+        };
+        document.addEventListener('keyup', saveSel);
+        document.addEventListener('mouseup', saveSel);
+        document.addEventListener('selectionchange', saveSel);
+      },
+
+      restoreSelection() {
+        const editor = document.getElementById('seance-rich-editor') || document.getElementById('brainstorm-rich-editor');
+        if (editor) editor.focus();
+        if (this.savedRange) {
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(this.savedRange);
+        }
+      },
+
+      execFormat(cmd, val = null) {
+        this.restoreSelection();
+        document.execCommand('styleWithCSS', false, true);
+        document.execCommand(cmd, false, val);
+        this.syncCurrentEditorContent();
+      },
+
+      applyInlineStyle(prop, val) {
+        if (!val) return;
+        this.restoreSelection();
+        const sel = window.getSelection();
+        if (!sel || sel.rangeCount === 0) return;
+        const range = sel.getRangeAt(0);
+
+        if (range.collapsed) {
+          // Si aucun texte n'est surligné, changer la police ou taille globale de l'éditeur
+          if (prop === 'fontFamily') this.updateAppearanceField('fontFamily', val);
+          if (prop === 'fontSize') this.updateAppearanceField('fontSize', val);
+          return;
+        }
+
+        const span = document.createElement('span');
+        span.style[prop] = val;
+        try {
+          range.surroundContents(span);
+        } catch (e) {
+          const fragment = range.extractContents();
+          span.appendChild(fragment);
+          range.insertNode(span);
+        }
+        sel.removeAllRanges();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span);
+        sel.addRange(newRange);
+        this.savedRange = newRange.cloneRange();
+        this.syncCurrentEditorContent();
+      },
+
+      syncCurrentEditorContent() {
+        const editor = document.getElementById('seance-rich-editor');
+        const activeTab = this.openTabs.find(t => t.id === this.activeTabId);
+        if (editor && activeTab && activeTab.type === 'seance') {
+          this.updateSeaField(activeTab.seqId, activeTab.seaId, 'miseEnOeuvre', editor.innerHTML);
+        }
+      },
+
+      insertPedagogicalBlock(type) {
+        this.restoreSelection();
+        let html = '';
+        if (type === 'phase') {
+          html = `<h3>⏱️ Nouvelle étape — 15 min (Collectif / Individuel)</h3><p>Décrire la consigne et l'activité des élèves...</p>`;
+        } else if (type === 'trace') {
+          html = `<blockquote><b>📝 Trace écrite / Bilan :</b><br>Ce qu'il faut retenir de cette étape...</blockquote><p><br></p>`;
+        } else if (type === 'diff') {
+          html = `<p><span style="background-color: #fef3c7; padding: 3px 8px; border-radius: 6px; color: #92400e;"><b>💡 Coup de pouce / Différenciation :</b> Support aménagé ou guidage supplémentaire...</span></p>`;
+        }
+        document.execCommand('insertHTML', false, html);
+        this.syncCurrentEditorContent();
+      },
+
+      // --- NAVIGATION CLAIRE ENTRE LES 3 VUES PRINCIPALES ---
+      switchMainView(viewName) {
+        this.currentMainView = viewName;
+        const views = ['workspace', 'calendar', 'brainstorm'];
+        views.forEach(v => {
+          const btn = document.getElementById(`nav-btn-${v}`);
+          if (!btn) return;
+          if (v === viewName) {
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 bg-white text-stone-900 shadow-sm transition";
+          } else {
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-stone-200 hover:bg-white/10 transition";
+          }
+        });
+
+        const tabsHeader = document.getElementById('workspace-tabs-header');
+        if (tabsHeader) {
+          tabsHeader.style.display = viewName === 'workspace' ? 'flex' : 'none';
+        }
+        this.renderViewport();
+      },
+
+      // --- APPARENCE, THÈMES & STUDIO DE MISE EN FORME ---
+      applyAppearanceToDOM() {
+        const s = this.data.settings;
+        const root = document.documentElement;
+        root.style.setProperty('--bg-main', s.bgMain || '#FAF8F5');
+        root.style.setProperty('--bg-sidebar', s.bgSidebar || '#F3EFEA');
+        root.style.setProperty('--bg-header', s.bgHeader || '#1C1917');
+        root.style.setProperty('--accent', s.accent || '#B45309');
+        root.style.setProperty('--accent-soft', this.hexToRgba(s.accent || '#B45309', 0.14));
+        root.style.setProperty('--title-font', s.titleFont || "'Lora', serif");
+        root.style.setProperty('--editor-font', s.fontFamily || "'Inter', sans-serif");
+        root.style.setProperty('--editor-size', s.fontSize || '15px');
+        root.style.setProperty('--content-max-width', s.maxWidth || '1080px');
+        root.style.setProperty('--card-radius', s.cardRadius || '14px');
+
+        const iconEl = document.getElementById('site-icon-display');
+        const titleEl = document.getElementById('site-title-display');
+        const labelPA = document.getElementById('label-sidebar-pa');
+        if (iconEl) iconEl.textContent = s.siteIcon || '📚';
+        if (titleEl) titleEl.textContent = s.siteTitle || 'Programmation & Séquences 5ème';
+        if (labelPA && s.customLabels?.sidebarPA) {
+          labelPA.querySelector('span').textContent = s.customLabels.sidebarPA;
+        }
+
+        // Bannière optionnelle
+        const banner = document.getElementById('custom-banner');
+        if (banner) {
+          if (s.bannerUrl && s.bannerUrl.trim() !== '') {
+            banner.style.backgroundImage = `url('${s.bannerUrl}')`;
+            banner.classList.remove('hidden');
+          } else {
+            banner.classList.add('hidden');
+          }
+        }
+      },
+
+      applyThemePreset(presetId) {
+        const preset = THEME_PRESETS.find(p => p.id === presetId);
+        if (!preset) return;
+        this.data.settings.bgMain = preset.bgMain;
+        this.data.settings.bgSidebar = preset.bgSidebar;
+        this.data.settings.bgHeader = preset.bgHeader;
+        this.data.settings.accent = preset.accent;
+        this.data.settings.titleFont = preset.titleFont;
+        this.data.settings.fontFamily = preset.bodyFont;
+        this.data.settings.siteIcon = preset.icon;
+        this.applyAppearanceToDOM();
+        this.populateStudioModal();
+        this.saveData();
+        this.renderAll();
+      },
+
+      updateCustomColor(key, val) {
+        this.data.settings[key] = val;
+        this.applyAppearanceToDOM();
+        this.saveData();
+        this.renderAll();
+      },
+
+      updateAppearanceField(key, val) {
+        this.data.settings[key] = val;
+        this.applyAppearanceToDOM();
+        this.saveData();
+        this.renderViewport();
+      },
+
+      toggleSectionVisibility(key, checked) {
+        this.data.settings[key] = checked;
+        this.saveData();
+        this.renderViewport();
+      },
+
+      promptRenameLabel(key, message) {
+        const current = this.data.settings.customLabels?.[key] || '';
+        const next = prompt(message, current);
+        if (next !== null && next.trim() !== '') {
+          this.data.settings.customLabels[key] = next.trim();
+          this.applyAppearanceToDOM();
+          this.saveData();
+        }
+      },
+
+      // --- GESTION DES MODALES ---
+      openModal(id) {
+        if (id === 'tags-modal') this.renderTagsModalList();
+        if (id === 'theme-modal') this.populateStudioModal();
+        const m = document.getElementById(id);
+        if (m) {
+          m.classList.remove('hidden');
+          m.classList.add('flex');
+        }
+        lucide.createIcons();
+      },
+
+      closeModal(id) {
+        const m = document.getElementById(id);
+        if (m) {
+          m.classList.add('hidden');
+          m.classList.remove('flex');
+        }
+      },
+
+      populateStudioModal() {
+        const s = this.data.settings;
+        const grid = document.getElementById('theme-presets-grid');
+        if (grid) {
+          grid.innerHTML = THEME_PRESETS.map(p => `
+            <button onclick="app.applyThemePreset('${p.id}')"
+                    class="p-3 rounded-xl border text-left transition hover:shadow-md flex flex-col justify-between gap-2"
+                    style="background-color: ${p.bgMain}; border-color: ${p.accent}55;">
+              <div class="flex items-center justify-between">
+                <span class="text-lg">${p.icon}</span>
+                <div class="flex items-center gap-1">
+                  <span class="w-3.5 h-3.5 rounded-full border border-black/10" style="background:${p.bgHeader}"></span>
+                  <span class="w-3.5 h-3.5 rounded-full border border-black/10" style="background:${p.bgSidebar}"></span>
+                  <span class="w-3.5 h-3.5 rounded-full border border-black/10" style="background:${p.accent}"></span>
+                </div>
+              </div>
+              <div>
+                <div class="text-xs font-bold text-stone-900">${p.name}</div>
+                <div class="text-[10px] text-stone-500">${p.desc}</div>
+              </div>
+            </button>
+          `).join('');
+        }
+
+        document.getElementById('custom-bg-main').value = s.bgMain || '#FAF8F5';
+        document.getElementById('custom-bg-sidebar').value = s.bgSidebar || '#F3EFEA';
+        document.getElementById('custom-bg-header').value = s.bgHeader || '#1C1917';
+        document.getElementById('custom-accent').value = s.accent || '#B45309';
+
+        document.getElementById('studio-title-font').value = s.titleFont || "'Lora', serif";
+        document.getElementById('studio-body-font').value = s.fontFamily || "'Inter', sans-serif";
+        document.getElementById('studio-font-size').value = s.fontSize || '15px';
+        document.getElementById('studio-site-icon').value = s.siteIcon || '📚';
+        document.getElementById('studio-site-title').value = s.siteTitle || '';
+        document.getElementById('studio-banner-url').value = s.bannerUrl || '';
+        document.getElementById('studio-max-width').value = s.maxWidth || '1080px';
+        document.getElementById('studio-card-radius').value = s.cardRadius || '14px';
+
+        document.getElementById('toggle-sec-dates').checked = s.showDates !== false;
+        document.getElementById('toggle-sec-obj').checked = s.showObjectifs !== false;
+        document.getElementById('toggle-sec-details').checked = s.showDetailsGrid !== false;
+        document.getElementById('toggle-sec-medias').checked = s.showMedias !== false;
+      },
+
+      // --- GESTIONNAIRE DES DOMINANTES PERSONNALISABLES ---
+      renderTagsModalList() {
+        const list = document.getElementById('tags-manager-list');
+        if (!list) return;
+        const entries = Object.entries(this.data.dominantes || {});
+        list.innerHTML = entries.map(([name, cfg]) => {
+          const st = this.getDominanteStyle(name);
+          return `
+            <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border"
+                 style="background-color: ${st.bgSoft}; border-color: ${st.borderSoft};">
+              <div class="flex items-center gap-2 flex-1 min-w-0">
+                <input type="text" value="${this.escapeAttr(cfg.icon || '📌')}"
+                       onchange="app.updateDominanteIcon('${this.escapeAttr(name)}', this.value)"
+                       class="w-9 text-center text-sm bg-white/80 rounded border border-stone-300 py-0.5">
+                <input type="text" value="${this.escapeAttr(name)}"
+                       onchange="app.renameDominante('${this.escapeAttr(name)}', this.value)"
+                       class="text-xs font-bold text-stone-900 bg-white/80 px-2 py-1 rounded border border-stone-300 flex-1">
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="flex items-center gap-1 text-[11px] text-stone-600 cursor-pointer bg-white/90 px-2 py-1 rounded border border-stone-300">
+                  <span>Couleur :</span>
+                  <input type="color" value="${cfg.color || '#2563eb'}"
+                         onchange="app.updateDominanteColor('${this.escapeAttr(name)}', this.value)"
+                         class="w-5 h-5 border-0 p-0 bg-transparent cursor-pointer">
+                </label>
+                <button onclick="app.deleteDominante('${this.escapeAttr(name)}')" title="Supprimer ce tag" class="p-1 text-stone-400 hover:text-rose-600">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        lucide.createIcons();
+      },
+
+      updateDominanteColor(name, color) {
+        if (!this.data.dominantes[name]) return;
+        this.data.dominantes[name].color = color;
+        this.saveData();
+        this.renderTagsModalList();
+        this.renderAll();
+      },
+
+      updateDominanteIcon(name, icon) {
+        if (!this.data.dominantes[name]) return;
+        this.data.dominantes[name].icon = icon;
+        this.saveData();
+        this.renderAll();
+      },
+
+      renameDominante(oldName, newName) {
+        const trimmed = (newName || '').trim();
+        if (!trimmed || trimmed === oldName) return;
+        this.data.dominantes[trimmed] = this.data.dominantes[oldName];
+        delete this.data.dominantes[oldName];
+        // Mettre à jour les séances et séquences utilisant cet intitulé
+        this.data.sequences.forEach(seq => {
+          if (seq.competencePrincipale === oldName) seq.competencePrincipale = trimmed;
+          seq.seances.forEach(sea => {
+            if (sea.dominante === oldName) sea.dominante = trimmed;
+          });
+        });
+        this.saveData();
+        this.renderTagsModalList();
+        this.renderAll();
+      },
+
+      addCustomDominante() {
+        const nameEl = document.getElementById('new-tag-name');
+        const colorEl = document.getElementById('new-tag-color');
+        const iconEl = document.getElementById('new-tag-icon');
+        const name = (nameEl.value || '').trim();
+        if (!name) return;
+        this.data.dominantes[name] = {
+          color: colorEl.value || '#0284c7',
+          icon: (iconEl.value || '✨').trim()
+        };
+        nameEl.value = '';
+        this.saveData();
+        this.renderTagsModalList();
+        this.renderAll();
+      },
+
+      deleteDominante(name) {
+        if (Object.keys(this.data.dominantes).length <= 1) return;
+        delete this.data.dominantes[name];
+        this.saveData();
+        this.renderTagsModalList();
+        this.renderAll();
+      },
+
+      // --- REDIMENSIONNEMENT & MODE GROS PLAN (FOCUS) ---
+      setupResizers() {
+        const leftSidebar = document.getElementById('left-sidebar');
+        const rightSidebar = document.getElementById('right-sidebar');
+        const resizerLeft = document.getElementById('resizer-left');
+        const resizerRight = document.getElementById('resizer-right');
+
+        let isResizingLeft = false;
+        let isResizingRight = false;
+
+        resizerLeft.addEventListener('mousedown', () => {
+          isResizingLeft = true;
+          resizerLeft.classList.add('active');
+          document.body.style.cursor = 'col-resize';
+        });
+
+        resizerRight.addEventListener('mousedown', () => {
+          isResizingRight = true;
+          resizerRight.classList.add('active');
+          document.body.style.cursor = 'col-resize';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (isResizingLeft) {
+            const newWidth = Math.max(190, Math.min(550, e.clientX));
+            leftSidebar.style.width = `${newWidth}px`;
+            if (!this.showLeft) this.toggleLeftSidebar(true);
+          } else if (isResizingRight) {
+            const newWidth = Math.max(220, Math.min(600, window.innerWidth - e.clientX));
+            rightSidebar.style.width = `${newWidth}px`;
+            if (!this.showRight) this.toggleRightSidebar(true);
+          }
+        });
+
+        window.addEventListener('mouseup', () => {
+          if (isResizingLeft || isResizingRight) {
+            isResizingLeft = false;
+            isResizingRight = false;
+            resizerLeft.classList.remove('active');
+            resizerRight.classList.remove('active');
+            document.body.style.cursor = '';
+          }
+        });
+      },
+
+      toggleLeftSidebar(forceState = null) {
+        this.showLeft = forceState !== null ? forceState : !this.showLeft;
+        document.getElementById('left-sidebar').style.display = this.showLeft ? 'flex' : 'none';
+        document.getElementById('resizer-left').style.display = this.showLeft ? 'block' : 'none';
+      },
+
+      toggleRightSidebar(forceState = null) {
+        this.showRight = forceState !== null ? forceState : !this.showRight;
+        document.getElementById('right-sidebar').style.display = this.showRight ? 'flex' : 'none';
+        document.getElementById('resizer-right').style.display = this.showRight ? 'block' : 'none';
+      },
+
+      toggleFocusMode() {
+        if (this.showLeft || this.showRight) {
+          this.toggleLeftSidebar(false);
+          this.toggleRightSidebar(false);
+        } else {
+          this.toggleLeftSidebar(true);
+          this.toggleRightSidebar(true);
+        }
+      },
+
+      toggleCompactTabs() {
+        this.data.settings.compactTabs = !this.data.settings.compactTabs;
+        this.saveData();
+        this.renderTabs();
+      },
+
+      // --- ARBORESCENCE GAUCHE AVEC SURLIGNAGE CLAIR SELON LA COULEUR DU TAG ---
+      setFilter(filter) {
+        this.currentFilter = filter;
+        this.renderTree();
+      },
+
+      renderDominanteFilters() {
+        const container = document.getElementById('dominante-filters');
+        if (!container) return;
+        const domKeys = Object.keys(this.data.dominantes || {});
+
+        let html = `
+          <button onclick="app.setFilter('ALL')"
+                  class="text-[10px] px-2 py-0.5 rounded-full font-semibold transition ${this.currentFilter === 'ALL' ? 'bg-stone-900 text-white' : 'bg-white/80 text-stone-700 border border-stone-300 hover:bg-white'}">
+            Tout
+          </button>
+        `;
+
+        domKeys.forEach(k => {
+          const st = this.getDominanteStyle(k);
+          const isActive = this.currentFilter === k;
+          html += `
+            <button onclick="app.setFilter('${this.escapeAttr(k)}')"
+                    style="background-color: ${isActive ? st.color : st.bgSoft}; color: ${isActive ? '#fff' : '#1c1917'}; border-color: ${st.borderSoft};"
+                    class="text-[10px] px-2 py-0.5 rounded-full font-medium border flex items-center gap-1 transition">
+              <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${isActive ? '#fff' : st.color}"></span>
+              <span>${k}</span>
+            </button>
+          `;
+        });
+
+        html += `
+          <button onclick="app.openModal('tags-modal')" title="Modifier ou ajouter un tag de dominante"
+                  class="text-[10px] px-1.5 py-0.5 rounded-full bg-white border border-stone-300 text-stone-600 hover:text-stone-900">
+            + Tag
+          </button>
+        `;
+        container.innerHTML = html;
+      },
+
+      renderTree() {
+        this.renderDominanteFilters();
+        const container = document.getElementById('tree-container');
+        const query = (document.getElementById('tree-search')?.value || '').toLowerCase();
+        container.innerHTML = '';
+
+        this.data.sequences.forEach(seq => {
+          const filteredSeances = seq.seances.filter(sea => {
+            const matchFilter = this.currentFilter === 'ALL' || sea.dominante === this.currentFilter;
+            const matchQuery = !query || sea.titre.toLowerCase().includes(query) || seq.titre.toLowerCase().includes(query) || (sea.objectifs || '').toLowerCase().includes(query);
+            return matchFilter && matchQuery;
+          });
+
+          const seqMatches = !query || seq.titre.toLowerCase().includes(query) || filteredSeances.length > 0;
+          if (!seqMatches && this.currentFilter !== 'ALL') return;
+
+          const isSeqActive = this.currentMainView === 'workspace' && this.activeTabId === `tab-${seq.id}`;
+          const paStyle = this.getDominanteStyle(seq.competencePrincipale);
+
+          const details = document.createElement('details');
+          details.open = true;
+          details.className = "group theme-card border shadow-2xs overflow-hidden";
+
+          details.innerHTML = `
+            <summary class="list-none cursor-pointer px-2.5 py-2 bg-stone-50/90 hover:bg-stone-100/80 flex items-center justify-between border-b border-stone-200/70">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-stone-400 transition-transform group-open:rotate-90 shrink-0"></i>
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0" style="background-color:${paStyle.bgActive}; color:${paStyle.color};">${seq.code || 'PA'}</span>
+                <span class="text-xs font-semibold text-stone-800 truncate" title="${this.escapeAttr(seq.titre)}">${seq.titre}</span>
+              </div>
+              <button onclick="event.stopPropagation(); app.createSeance('${seq.id}')" title="Ajouter une séance dans ce PA" class="p-1 rounded hover:bg-stone-200 text-stone-500 hover:text-stone-900 shrink-0">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              </button>
+            </summary>
+            <div class="p-1.5 space-y-1">
+              <!-- Lien Présentation du PA -->
+              <div onclick="app.openTab({ id: 'tab-${seq.id}', type: 'sequence', seqId: '${seq.id}' }, true)"
+                   class="cursor-pointer px-2.5 py-1.5 rounded-lg text-xs flex items-center justify-between transition ${isSeqActive ? 'bg-stone-900 text-white font-semibold shadow-2xs' : 'text-stone-600 hover:bg-stone-100'}">
+                <div class="flex items-center gap-2 truncate">
+                  <i data-lucide="compass" class="w-3.5 h-3.5 ${isSeqActive ? 'text-amber-300' : 'text-amber-700'} shrink-0"></i>
+                  <span class="truncate">Présentation du PA (${seq.competencePrincipale || 'Projet'})</span>
+                </div>
+                <span class="text-[10px] opacity-75 shrink-0">${seq.seances.length} séa.</span>
+              </div>
+
+              <!-- Liste des séances avec SURLIGNAGE CLAIR selon la couleur du tag -->
+              ${filteredSeances.map(sea => {
+                const isSeaActive = this.currentMainView === 'workspace' && this.activeTabId === `tab-${sea.id}`;
+                const st = this.getDominanteStyle(sea.dominante);
+                const dateBadge = sea.dateDebut ? new Date(sea.dateDebut).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '';
+                return `
+                  <div onclick="app.openTab({ id: 'tab-${sea.id}', type: 'seance', seqId: '${seq.id}', seaId: '${sea.id}' }, true)"
+                       style="background-color: ${isSeaActive ? st.bgActive : st.bgSoft}; border-left: 4px solid ${st.color}; ${isSeaActive ? `outline: 2px solid ${st.color};` : ''}"
+                       class="cursor-pointer pl-2.5 pr-2 py-1.5 rounded-r-lg text-xs flex items-center justify-between gap-1.5 transition hover:brightness-95">
+                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                      <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${st.color}" title="Dominante : ${sea.dominante}"></span>
+                      <span class="${isSeaActive ? 'font-bold text-stone-950' : 'font-medium text-stone-800'} truncate" title="${this.escapeAttr(sea.titre)}">${sea.titre}</span>
+                    </div>
+                    ${dateBadge ? `<span class="text-[10px] font-medium text-stone-600 shrink-0">${dateBadge}</span>` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+          container.appendChild(details);
+        });
+
+        this.updateStats();
+        lucide.createIcons();
+      },
+
+      // --- SYSTÈME D'ONGLETS (DANS LA VUE PROJETS & SÉANCES) ---
+      openTab(tabObj, makeActive = true) {
+        const exists = this.openTabs.find(t => t.id === tabObj.id);
+        if (!exists) {
+          this.openTabs.push(tabObj);
+        }
+        if (makeActive) {
+          this.activeTabId = tabObj.id;
+          this.currentMainView = 'workspace';
+        }
+        this.renderAll();
+      },
+
+      closeTab(tabId, event) {
+        if (event) event.stopPropagation();
+        const idx = this.openTabs.findIndex(t => t.id === tabId);
+        if (idx === -1) return;
+        this.openTabs.splice(idx, 1);
+        if (this.activeTabId === tabId) {
+          this.activeTabId = this.openTabs.length ? this.openTabs[Math.max(0, idx - 1)].id : null;
+        }
+        this.renderAll();
+      },
+
+      renderTabs() {
+        const bar = document.getElementById('tabs-bar');
+        if (!bar) return;
+        bar.innerHTML = '';
+        const isCompact = this.data.settings?.compactTabs;
+        const maxW = isCompact ? 'max-w-[140px]' : 'max-w-[260px]';
+
+        this.openTabs.forEach(tab => {
+          const isActive = tab.id === this.activeTabId;
+          let title = "Onglet";
+          let dotColor = "#b45309";
+          let bgTab = isActive ? "#ffffff" : "rgba(255,255,255,0.45)";
+
+          if (tab.type === 'sequence') {
+            const seq = this.getSequence(tab.seqId);
+            if (!seq) return;
+            title = `${seq.code || 'PA'} : ${seq.titre}`;
+            dotColor = this.getDominanteStyle(seq.competencePrincipale).color;
+          } else if (tab.type === 'seance') {
+            const { sea } = this.getSeance(tab.seqId, tab.seaId);
+            if (!sea) return;
+            title = sea.titre;
+            const st = this.getDominanteStyle(sea.dominante);
+            dotColor = st.color;
+            if (isActive) bgTab = st.bgSoft;
+          }
+
+          const btn = document.createElement('div');
+          btn.onclick = () => { this.activeTabId = tab.id; this.switchMainView('workspace'); this.renderAll(); };
+          btn.style.backgroundColor = bgTab;
+          btn.style.borderTop = isActive ? `3px solid ${dotColor}` : '3px solid transparent';
+          btn.className = `group cursor-pointer px-3 py-1.5 rounded-t-lg text-xs flex items-center gap-2 border-x border-stone-300/70 transition shrink-0 ${maxW} ${
+            isActive ? 'text-stone-950 font-bold shadow-2xs' : 'text-stone-600 hover:bg-white/80'
+          }`;
+
+          btn.innerHTML = `
+            <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${dotColor}"></span>
+            <span class="truncate" title="${this.escapeAttr(title)}">${title}</span>
+            <button onclick="app.closeTab('${tab.id}', event)" class="ml-1 p-0.5 rounded hover:bg-black/10 text-stone-400 hover:text-stone-800 shrink-0">
+              <i data-lucide="x" class="w-3 h-3"></i>
+            </button>
+          `;
+          bar.appendChild(btn);
+        });
+      },
+
+      // --- RENDU DE LA ZONE CENTRALE SELON LA VUE CHOISIE ---
+      renderViewport() {
+        const viewport = document.getElementById('editor-viewport');
+        if (!viewport) return;
+
+        // Mettre à jour l'état visuel des 3 boutons de navigation en haut
+        ['workspace', 'calendar', 'brainstorm'].forEach(v => {
+          const btn = document.getElementById(`nav-btn-${v}`);
+          if (!btn) return;
+          if (v === this.currentMainView) {
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 bg-white text-stone-900 shadow-sm transition";
+          } else {
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-stone-200 hover:bg-white/10 transition";
+          }
+        });
+
+        const tabsHeader = document.getElementById('workspace-tabs-header');
+        if (tabsHeader) {
+          tabsHeader.style.display = this.currentMainView === 'workspace' ? 'flex' : 'none';
+        }
+
+        if (this.currentMainView === 'calendar') {
+          this.renderCalendarView(viewport);
+          lucide.createIcons();
+          return;
+        }
+
+        if (this.currentMainView === 'brainstorm') {
+          this.renderBrainstormFullView(viewport);
+          lucide.createIcons();
+          return;
+        }
+
+        // Vue 'workspace' (Projets & Séances)
+        const activeTab = this.openTabs.find(t => t.id === this.activeTabId);
+        if (!activeTab) {
+          viewport.innerHTML = `
+            <div class="h-full flex flex-col items-center justify-center text-center text-stone-400 py-20">
+              <i data-lucide="book-open" class="w-12 h-12 mb-3 text-stone-300"></i>
+              <p class="font-serif-title text-lg text-stone-600">Sélectionnez un Projet d'Apprentissage ou une Séance à gauche</p>
+              <p class="text-xs mt-1">Ou utilisez la barre supérieure pour basculer vers le Calendrier ou le Mur de Brainstorming.</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        if (activeTab.type === 'sequence') {
+          this.renderSequenceView(viewport, activeTab.seqId);
+        } else if (activeTab.type === 'seance') {
+          this.renderSeanceView(viewport, activeTab.seqId, activeTab.seaId);
+        }
+        lucide.createIcons();
+      },
+
+      // --- 1. VUE PROJET D'APPRENTISSAGE (SÉQUENCE) ---
+      renderSequenceView(viewport, seqId) {
+        const seq = this.getSequence(seqId);
+        if (!seq) return;
+        const domKeys = Object.keys(this.data.dominantes || {});
+        const paStyle = this.getDominanteStyle(seq.competencePrincipale);
+
+        viewport.innerHTML = `
+          <div class="content-container mx-auto space-y-6 print-container pb-20">
+            <!-- En-tête du PA -->
+            <div class="theme-card p-6 border shadow-sm space-y-4" style="border-top: 5px solid ${paStyle.color}">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <input type="text" value="${this.escapeAttr(seq.code || 'PA')}"
+                         onchange="app.updateSeqField('${seq.id}', 'code', this.value)"
+                         style="background-color:${paStyle.bgSoft}; color:${paStyle.color}; border-color:${paStyle.borderSoft}"
+                         class="w-16 text-xs font-bold uppercase px-2 py-1 rounded border text-center">
+                  <span class="text-xs text-stone-400">•</span>
+                  <input type="text" value="${this.escapeAttr(seq.entree || '')}" placeholder="Entrée littéraire du programme..."
+                         onchange="app.updateSeqField('${seq.id}', 'entree', this.value)"
+                         class="text-xs font-medium text-stone-700 bg-stone-100/80 px-2.5 py-1 rounded border border-stone-200 w-72 md:w-96">
+                </div>
+                <div class="flex items-center gap-2 no-print">
+                  <button onclick="app.createSeance('${seq.id}')" class="px-3 py-1.5 rounded-lg theme-accent-btn text-xs font-medium flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                    <span>Ajouter une séance</span>
+                  </button>
+                  <button onclick="app.deleteSequence('${seq.id}')" title="Supprimer ce PA" class="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Titre du PA -->
+              <input type="text" value="${this.escapeAttr(seq.titre)}"
+                     onchange="app.updateSeqField('${seq.id}', 'titre', this.value)"
+                     placeholder="Nom du Projet d'Apprentissage..."
+                     class="w-full font-serif-title text-2xl font-bold text-stone-900 bg-transparent border-b border-transparent focus:border-amber-600 focus:outline-none pb-1">
+
+              <!-- Métadonnées issues du Google Sheet -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                <div class="bg-stone-50/80 p-3 rounded-lg border border-stone-200/80">
+                  <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Compétence principale</label>
+                  <select onchange="app.updateSeqField('${seq.id}', 'competencePrincipale', this.value); app.renderAll();"
+                          class="w-full text-xs font-semibold text-stone-800 bg-transparent focus:outline-none">
+                    ${domKeys.map(c => `<option value="${c}" ${seq.competencePrincipale === c ? 'selected' : ''}>${c}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="bg-stone-50/80 p-3 rounded-lg border border-stone-200/80">
+                  <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Durée prévue</label>
+                  <input type="text" value="${this.escapeAttr(seq.dureePrevue || '')}" placeholder="Ex: Prévue : 2 semaines"
+                         onchange="app.updateSeqField('${seq.id}', 'dureePrevue', this.value)"
+                         class="w-full text-xs font-semibold text-stone-800 bg-transparent focus:outline-none">
+                </div>
+                <div class="bg-stone-50/80 p-3 rounded-lg border border-stone-200/80">
+                  <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Nombre de séances</label>
+                  <div class="text-xs font-semibold text-stone-800">${seq.seances.length} séance(s) programmée(s)</div>
+                </div>
+              </div>
+
+              <!-- Questionnement / Problématique -->
+              <div class="p-3.5 rounded-r-lg" style="background-color: var(--accent-soft); border-left: 4px solid var(--accent);">
+                <label class="block text-[10px] font-bold uppercase tracking-wider mb-1" style="color: var(--accent)">Questionnement directeur</label>
+                <input type="text" value="${this.escapeAttr(seq.questionnement || '')}" placeholder="Quelle est la problématique de la séquence ?"
+                       onchange="app.updateSeqField('${seq.id}', 'questionnement', this.value)"
+                       class="w-full text-sm font-serif-title italic text-stone-800 bg-transparent focus:outline-none">
+              </div>
+            </div>
+
+            <!-- Grille des rubriques du Google Sheet -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div class="theme-card p-5 border shadow-sm flex flex-col">
+                <label class="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2 flex items-center gap-1.5">
+                  <i data-lucide="target" class="w-4 h-4 text-amber-700"></i> Objectif général
+                </label>
+                <textarea onchange="app.updateSeqField('${seq.id}', 'objectifGeneral', this.value)" rows="4"
+                          class="w-full flex-1 text-xs leading-relaxed text-stone-700 bg-stone-50/60 p-3 rounded-lg border border-stone-200 focus:outline-none">${seq.objectifGeneral || ''}</textarea>
+              </div>
+
+              <div class="theme-card p-5 border shadow-sm flex flex-col">
+                <label class="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2 flex items-center gap-1.5">
+                  <i data-lucide="award" class="w-4 h-4 text-emerald-700"></i> Évaluation sommative / Projet final
+                </label>
+                <textarea onchange="app.updateSeqField('${seq.id}', 'evaluationSommative', this.value)" rows="4"
+                          class="w-full flex-1 text-xs leading-relaxed text-stone-700 bg-stone-50/60 p-3 rounded-lg border border-stone-200 focus:outline-none">${seq.evaluationSommative || ''}</textarea>
+              </div>
+
+              <div class="theme-card p-5 border shadow-sm flex flex-col">
+                <label class="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2 flex items-center gap-1.5">
+                  <i data-lucide="library" class="w-4 h-4 text-blue-700"></i> Corpus (Textes, Images, Extraits)
+                </label>
+                <textarea onchange="app.updateSeqField('${seq.id}', 'corpus', this.value)" rows="7"
+                          class="w-full flex-1 text-xs leading-relaxed text-stone-700 bg-stone-50/60 p-3 rounded-lg border border-stone-200 focus:outline-none">${seq.corpus || ''}</textarea>
+              </div>
+
+              <div class="theme-card p-5 border shadow-sm flex flex-col">
+                <label class="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2 flex items-center gap-1.5">
+                  <i data-lucide="check-square" class="w-4 h-4 text-purple-700"></i> Compétences travaillées
+                </label>
+                <textarea onchange="app.updateSeqField('${seq.id}', 'competencesTravaillees', this.value)" rows="7"
+                          class="w-full flex-1 text-xs leading-relaxed text-stone-700 bg-stone-50/60 p-3 rounded-lg border border-stone-200 focus:outline-none">${seq.competencesTravaillees || ''}</textarea>
+              </div>
+            </div>
+
+            <!-- Supports & Médias du PA -->
+            ${this.data.settings.showMedias !== false ? this.renderMediaSection('sequence', seq.id, null, seq.medias || []) : ''}
+
+            <!-- Tableau récapitulatif des séances du PA avec surlignage de dominante -->
+            <div class="theme-card p-6 border shadow-sm space-y-4">
+              <div class="flex items-center justify-between">
+                <h2 class="font-serif-title font-bold text-base text-stone-800 flex items-center gap-2">
+                  <i data-lucide="list-ordered" class="w-4 h-4 text-amber-700"></i>
+                  Progression des séances (${seq.seances.length})
+                </h2>
+                <button onclick="app.createSeance('${seq.id}')" class="no-print text-xs font-semibold hover:underline flex items-center gap-1" style="color: var(--accent)">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i> Nouvelle séance
+                </button>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-stone-100 text-stone-600 border-y border-stone-200">
+                      <th class="py-2.5 px-3 font-semibold">Séance & Dominante</th>
+                      <th class="py-2.5 px-3 font-semibold">Dates (Début &rarr; Fin)</th>
+                      <th class="py-2.5 px-3 font-semibold">Durée (Prévue / Réelle)</th>
+                      <th class="py-2.5 px-3 font-semibold">Objectifs</th>
+                      <th class="py-2.5 px-3 font-semibold">Devoirs / Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-stone-200/70">
+                    ${seq.seances.map(sea => {
+                      const st = this.getDominanteStyle(sea.dominante);
+                      return `
+                        <tr onclick="app.openTab({ id: 'tab-${sea.id}', type: 'seance', seqId: '${seq.id}', seaId: '${sea.id}' }, true)"
+                            style="background-color: ${st.bgSoft};"
+                            class="hover:brightness-95 cursor-pointer transition">
+                          <td class="py-3 px-3 font-semibold text-stone-900" style="border-left: 4px solid ${st.color}">
+                            <div class="flex items-center gap-2">
+                              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style="background-color: ${st.color}">${st.icon} ${sea.dominante}</span>
+                              <span>${sea.titre}</span>
+                            </div>
+                          </td>
+                          <td class="py-3 px-3 text-stone-700 whitespace-nowrap">
+                            ${sea.dateDebut ? this.formatDateShort(sea.dateDebut) : '—'} ${sea.dateFin ? '&rarr; ' + this.formatDateShort(sea.dateFin) : ''}
+                          </td>
+                          <td class="py-3 px-3 text-stone-700 whitespace-nowrap">
+                            <span class="font-medium">${sea.dureePrevue || '—'}</span>
+                            ${sea.dureeReelle ? `<span class="text-stone-500"> (Réel: ${sea.dureeReelle})</span>` : ''}
+                          </td>
+                          <td class="py-3 px-3 text-stone-700 max-w-xs truncate" title="${this.escapeAttr(sea.objectifs)}">${sea.objectifs || '—'}</td>
+                          <td class="py-3 px-3 text-stone-600 max-w-xs truncate" title="${this.escapeAttr(sea.notes || sea.devoirs)}">${sea.notes || sea.devoirs || '—'}</td>
+                        </tr>
+                      `;
+                    }).join('') || `<tr><td colspan="5" class="py-6 text-center text-stone-400">Aucune séance dans ce PA. Cliquez sur « + Ajouter une séance ».</td></tr>`}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      // --- 2. VUE SÉANCE DÉTAILLÉE (AVEC BANDEAU SURLIGNÉ & ÉDITEUR RICHE CORRIGÉ) ---
+      renderSeanceView(viewport, seqId, seaId) {
+        const { seq, sea } = this.getSeance(seqId, seaId);
+        if (!sea) return;
+        const st = this.getDominanteStyle(sea.dominante);
+        const domKeys = Object.keys(this.data.dominantes || {});
+        const s = this.data.settings;
+
+        viewport.innerHTML = `
+          <div class="content-container mx-auto space-y-5 print-container pb-20">
+            <!-- En-tête de la Séance avec surlignage clair de son titre selon sa dominante -->
+            <div class="theme-card p-6 border shadow-sm space-y-4" style="border-top: 5px solid ${st.color}">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <button onclick="app.openTab({ id: 'tab-${seq.id}', type: 'sequence', seqId: '${seq.id}' }, true)"
+                        class="text-xs font-semibold hover:underline flex items-center gap-1.5" style="color: var(--accent)">
+                  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                  <span>${seq.code || 'PA'} : ${seq.titre}</span>
+                </button>
+                <div class="flex items-center gap-2 no-print">
+                  <button onclick="app.openModal('tags-modal')"
+                          style="background-color: ${st.color}; color: #fff;"
+                          class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-2xs hover:opacity-90 transition"
+                          title="Cliquer pour personnaliser les couleurs des dominantes">
+                    <span>${st.icon}</span>
+                    <span>${sea.dominante}</span>
+                  </button>
+                  <button onclick="app.deleteSeance('${seq.id}', '${sea.id}')" title="Supprimer cette séance" class="p-1.5 rounded text-stone-400 hover:text-rose-600 hover:bg-rose-50">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Titre de la séance surligné avec la teinte claire du tag -->
+              <div class="p-3 rounded-xl transition" style="background-color: ${st.bgSoft}; border-left: 5px solid ${st.color};">
+                <input type="text" value="${this.escapeAttr(sea.titre)}"
+                       onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'titre', this.value)"
+                       placeholder="Titre de la séance (ex: S1 - Introduction...)"
+                       class="w-full font-serif-title text-xl md:text-2xl font-bold text-stone-900 bg-transparent focus:outline-none">
+              </div>
+
+              <!-- Barre de programmation (Date début, Date fin, Durée prévue, Durée réelle, Dominante) -->
+              ${s.showDates !== false ? `
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-1">
+                  <div class="bg-stone-50 p-2.5 rounded-lg border border-stone-200">
+                    <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Dominante (Tag)</label>
+                    <select onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'dominante', this.value); app.renderAll();"
+                            class="w-full text-xs font-bold text-stone-800 bg-transparent focus:outline-none cursor-pointer">
+                      ${domKeys.map(d => `<option value="${d}" ${sea.dominante === d ? 'selected' : ''}>${d}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div class="bg-stone-50 p-2.5 rounded-lg border border-stone-200">
+                    <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Date début</label>
+                    <input type="date" value="${sea.dateDebut || ''}"
+                           onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'dateDebut', this.value)"
+                           class="w-full text-xs font-semibold text-stone-800 bg-transparent focus:outline-none">
+                  </div>
+                  <div class="bg-stone-50 p-2.5 rounded-lg border border-stone-200">
+                    <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Date fin</label>
+                    <input type="date" value="${sea.dateFin || ''}"
+                           onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'dateFin', this.value)"
+                           class="w-full text-xs font-semibold text-stone-800 bg-transparent focus:outline-none">
+                  </div>
+                  <div class="bg-stone-50 p-2.5 rounded-lg border border-stone-200">
+                    <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Durée prévue</label>
+                    <input type="text" value="${this.escapeAttr(sea.dureePrevue || '')}" placeholder="Ex: 1h30"
+                           onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'dureePrevue', this.value)"
+                           class="w-full text-xs font-semibold text-stone-800 bg-transparent focus:outline-none">
+                  </div>
+                  <div class="bg-stone-50 p-2.5 rounded-lg border border-stone-200">
+                    <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Durée réelle</label>
+                    <input type="text" value="${this.escapeAttr(sea.dureeReelle || '')}" placeholder="Ex: 2h"
+                           onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'dureeReelle', this.value)"
+                           class="w-full text-xs font-semibold text-amber-900 bg-transparent focus:outline-none">
+                  </div>
+                </div>
+              ` : ''}
+
+              <!-- Objectifs & Compétences -->
+              ${s.showObjectifs !== false ? `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                  <div class="p-3.5 rounded-lg border" style="background-color: ${st.bgSoft}; border-color: ${st.borderSoft};">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider mb-1" style="color: ${st.color}">Objectifs de la séance (« Je suis capable de... »)</label>
+                    <textarea onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'objectifs', this.value)" rows="3"
+                              placeholder="Objectifs formulés pour les élèves..."
+                              class="w-full text-xs leading-relaxed text-stone-800 bg-transparent focus:outline-none">${sea.objectifs || ''}</textarea>
+                  </div>
+                  <div class="bg-stone-50 p-3.5 rounded-lg border border-stone-200">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">Compétences mobilisées</label>
+                    <textarea onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'competences', this.value)" rows="3"
+                              placeholder="Compétences du socle / programme..."
+                              class="w-full text-xs leading-relaxed text-stone-700 bg-transparent focus:outline-none">${sea.competences || ''}</textarea>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- ÉDITEUR RICHE CORRIGÉ : MISE EN ŒUVRE / DÉROULEMENT DE LA SÉANCE -->
+            <div class="theme-card border shadow-sm overflow-hidden">
+              <!-- Barre d'outils de mise en forme riche avec préservation de sélection -->
+              <div class="no-print bg-stone-100/90 border-b border-stone-200 px-3 py-2 flex flex-wrap items-center gap-1.5">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-stone-600 mr-1 flex items-center gap-1">
+                  <i data-lucide="pen-tool" class="w-3.5 h-3.5" style="color: var(--accent)"></i> Mise en œuvre
+                </span>
+
+                <!-- Police (applique sur le texte sélectionné OU sur toute la fiche si rien n'est sélectionné) -->
+                <select onchange="app.applyInlineStyle('fontFamily', this.value); this.value='';" title="Changer la police du texte sélectionné (ou de toute la fiche)" class="text-xs bg-white border border-stone-300 rounded-lg px-2 py-1 cursor-pointer">
+                  <option value="">Police...</option>
+                  <option value="'Inter', sans-serif">Inter (Sans-serif)</option>
+                  <option value="'Lora', serif">Lora (Sérif littéraire)</option>
+                  <option value="'Playfair Display', serif">Playfair Display</option>
+                  <option value="'Merriweather', serif">Merriweather</option>
+                  <option value="'Quicksand', sans-serif">Quicksand (Arrondi)</option>
+                  <option value="'Montserrat', sans-serif">Montserrat</option>
+                  <option value="'Georgia', serif">Georgia</option>
+                </select>
+
+                <!-- Taille précise en px -->
+                <select onchange="app.applyInlineStyle('fontSize', this.value); this.value='';" title="Changer la taille du texte sélectionné (ou de toute la fiche)" class="text-xs bg-white border border-stone-300 rounded-lg px-2 py-1 cursor-pointer">
+                  <option value="">Taille...</option>
+                  <option value="12px">Petit (12px)</option>
+                  <option value="14px">Normal - (14px)</option>
+                  <option value="15px">Normal (15px)</option>
+                  <option value="17px">Grand (17px)</option>
+                  <option value="20px">Sous-titre (20px)</option>
+                  <option value="24px">Titre (24px)</option>
+                </select>
+
+                <div class="h-4 w-px bg-stone-300 mx-0.5"></div>
+
+                <!-- Boutons Gras / Italique / Souligné / Barré avec onmousedown="event.preventDefault()" pour ne jamais perdre la sélection -->
+                <button onmousedown="event.preventDefault()" onclick="app.execFormat('bold')" title="Gras (Ctrl+B)" class="px-2 py-1 rounded-lg bg-white hover:bg-stone-200 border border-stone-300 text-xs font-bold">B</button>
+                <button onmousedown="event.preventDefault()" onclick="app.execFormat('italic')" title="Italique (Ctrl+I)" class="px-2 py-1 rounded-lg bg-white hover:bg-stone-200 border border-stone-300 text-xs italic font-serif">I</button>
+                <button onmousedown="event.preventDefault()" onclick="app.execFormat('underline')" title="Souligné (Ctrl+U)" class="px-2 py-1 rounded-lg bg-white hover:bg-stone-200 border border-stone-300 text-xs underline">U</button>
+                <button onmousedown="event.preventDefault()" onclick="app.execFormat('strikeThrough')" title="Barré" class="px-2 py-1 rounded-lg bg-white hover:bg-stone-200 border border-stone-300 text-xs line-through">S</button>
+
+                <!-- Palette de couleurs de texte directe + Sélecteur libre -->
+                <div class="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-stone-300" title="Couleur du texte sélectionné">
+                  <span class="text-[11px] font-bold mr-0.5">A</span>
+                  ${['#1c1917', '#b45309', '#be123c', '#1d4ed8', '#047857', '#7e22ce'].map(col => `
+                    <button onmousedown="event.preventDefault()" onclick="app.execFormat('foreColor', '${col}')"
+                            style="background-color: ${col}" class="w-3.5 h-3.5 rounded-full border border-black/15 hover:scale-110 transition"></button>
+                  `).join('')}
+                  <input type="color" value="#9a3412" oninput="app.execFormat('foreColor', this.value)" class="w-4 h-4 border-0 p-0 bg-transparent cursor-pointer ml-0.5" title="Autre couleur de texte">
+                </div>
+
+                <!-- Palette de surlignage rapide + Sélecteur libre -->
+                <div class="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-stone-300" title="Surligner le texte sélectionné">
+                  <i data-lucide="highlighter" class="w-3.5 h-3.5 text-amber-500 mr-0.5"></i>
+                  ${['#fef08a', '#fed7aa', '#bbf7d0', '#bfdbfe', '#f5d0fe', '#fecdd3'].map(col => `
+                    <button onmousedown="event.preventDefault()" onclick="app.execFormat('hiliteColor', '${col}')"
+                            style="background-color: ${col}" class="w-3.5 h-3.5 rounded-full border border-black/15 hover:scale-110 transition"></button>
+                  `).join('')}
+                  <input type="color" value="#fef08a" oninput="app.execFormat('hiliteColor', this.value)" class="w-4 h-4 border-0 p-0 bg-transparent cursor-pointer ml-0.5" title="Autre couleur de surlignage">
+                </div>
+
+                <div class="h-4 w-px bg-stone-300 mx-0.5"></div>
+
+                <!-- Listes -->
+                <button onmousedown="event.preventDefault()" onclick="app.execFormat('insertUnorderedList')" title="Liste à puces" class="p-1.5 rounded-lg bg-white hover:bg-stone-200 border border-stone-300"><i data-lucide="list" class="w-3.5 h-3.5"></i></button>
+                <button onmousedown="event.preventDefault()" onclick="app.execFormat('insertOrderedList')" title="Liste numérotée" class="p-1.5 rounded-lg bg-white hover:bg-stone-200 border border-stone-300"><i data-lucide="list-ordered" class="w-3.5 h-3.5"></i></button>
+
+                <!-- Blocs pédagogiques rapides -->
+                <button onmousedown="event.preventDefault()" onclick="app.insertPedagogicalBlock('phase')" class="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-medium">+ Étape</button>
+                <button onmousedown="event.preventDefault()" onclick="app.insertPedagogicalBlock('trace')" class="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 text-[11px] font-medium">+ Trace écrite</button>
+                <button onmousedown="event.preventDefault()" onclick="app.insertPedagogicalBlock('diff')" class="px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-300 text-[11px] font-medium">+ Différenciation</button>
+              </div>
+
+              <!-- Zone d'édition riche contenteditable -->
+              <div id="seance-rich-editor"
+                   contenteditable="true"
+                   oninput="app.updateSeaField('${seq.id}', '${sea.id}', 'miseEnOeuvre', this.innerHTML)"
+                   class="rich-editor p-6 bg-white text-stone-800">${sea.miseEnOeuvre || '<p>Rédigez ici le déroulé précis de votre séance...</p>'}</div>
+            </div>
+
+            <!-- Grille des 4 rubriques complémentaires du Google Sheet -->
+            ${s.showDetailsGrid !== false ? `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="theme-card p-4 border shadow-sm">
+                  <label class="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2 flex items-center gap-1.5">
+                    <i data-lucide="layers" class="w-4 h-4 text-blue-700"></i> À préparer / Supports
+                  </label>
+                  <textarea onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'supports', this.value)" rows="4"
+                            placeholder="Polycopiés, extraits, pages du livre, diaporama..."
+                            class="w-full text-xs leading-relaxed text-stone-700 bg-stone-50/70 p-2.5 rounded-lg border border-stone-200 focus:outline-none">${sea.supports || ''}</textarea>
+                </div>
+
+                <div class="theme-card p-4 border shadow-sm">
+                  <label class="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2 flex items-center gap-1.5">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600"></i> Points de vigilance / Adaptations & variantes
+                  </label>
+                  <textarea onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'vigilance', this.value)" rows="4"
+                            placeholder="Gestion du temps, variantes selon la concentration de la classe..."
+                            class="w-full text-xs leading-relaxed text-stone-700 bg-stone-50/70 p-2.5 rounded-lg border border-stone-200 focus:outline-none">${sea.vigilance || ''}</textarea>
+                </div>
+
+                <div class="theme-card p-4 border shadow-sm">
+                  <label class="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2 flex items-center gap-1.5">
+                    <i data-lucide="home" class="w-4 h-4 text-emerald-700"></i> Devoirs / Prolongement
+                  </label>
+                  <textarea onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'devoirs', this.value)" rows="4"
+                            placeholder="Travail à faire à la maison, lectures cursives, journal du lecteur..."
+                            class="w-full text-xs leading-relaxed text-stone-700 bg-stone-50/70 p-2.5 rounded-lg border border-stone-200 focus:outline-none">${sea.devoirs || ''}</textarea>
+                </div>
+
+                <div class="theme-card p-4 border shadow-sm">
+                  <label class="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2 flex items-center gap-1.5">
+                    <i data-lucide="message-square" class="w-4 h-4 text-purple-700"></i> Notes & Bilan par classe (ex: 5A / 5C)
+                  </label>
+                  <textarea onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'notes', this.value)" rows="4"
+                            placeholder="Suivi par classe (5A / 5C), propositions des élèves..."
+                            class="w-full text-xs leading-relaxed text-stone-700 bg-amber-50/40 p-2.5 rounded-lg border border-amber-200/80 focus:outline-none">${sea.notes || ''}</textarea>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Galerie des liens vers Images / Diapos / Vidéos -->
+            ${s.showMedias !== false ? this.renderMediaSection('seance', seq.id, sea.id, sea.medias || []) : ''}
+          </div>
+        `;
+      },
+
+      // --- 3. VUE GRAND MUR DE BRAINSTORMING PLEIN ÉCRAN ---
+      renderBrainstormFullView(viewport) {
+        const cards = this.data.brainstorming?.cards || [];
+        viewport.innerHTML = `
+          <div class="content-container mx-auto space-y-6 pb-20">
+            <div class="theme-card p-5 border shadow-sm flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 class="font-serif-title text-xl font-bold text-stone-900 flex items-center gap-2">
+                  <i data-lucide="lightbulb" class="w-5 h-5 text-amber-600"></i>
+                  Mur de Brainstorming & Carnet d'Idées Créatives
+                </h2>
+                <p class="text-xs text-stone-500">Notez vos pistes de textes, projets d'évaluation et post-its colorés avant de les transformer en séances.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="app.addBrainstormCard()" class="px-3 py-1.5 rounded-lg theme-accent-btn text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                  <i data-lucide="plus" class="w-4 h-4"></i> Nouveau Post-it
+                </button>
+                <button onclick="app.switchMainView('workspace')" class="px-3 py-1.5 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-semibold flex items-center gap-1.5">
+                  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Retour aux Projets & Séances
+                </button>
+              </div>
+            </div>
+
+            <!-- Grand carnet libre -->
+            <div class="theme-card p-5 border shadow-sm space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-stone-500">Feuille de brouillon & réflexion libre</span>
+                <div class="flex items-center gap-1">
+                  <button onmousedown="event.preventDefault()" onclick="app.execFormat('bold')" class="px-2 py-0.5 text-xs font-bold bg-stone-100 rounded border">B</button>
+                  <button onmousedown="event.preventDefault()" onclick="app.execFormat('italic')" class="px-2 py-0.5 text-xs italic bg-stone-100 rounded border">I</button>
+                  <button onmousedown="event.preventDefault()" onclick="app.execFormat('underline')" class="px-2 py-0.5 text-xs underline bg-stone-100 rounded border">U</button>
+                </div>
+              </div>
+              <div id="brainstorm-rich-editor"
+                   contenteditable="true"
+                   oninput="app.data.brainstorming.scratchpad = this.innerHTML; app.saveData(); app.renderRightSidebar();"
+                   class="rich-editor p-4 rounded-xl bg-amber-50/30 border border-amber-200/70 text-stone-800 min-h-[160px]">${this.data.brainstorming?.scratchpad || ''}</div>
+            </div>
+
+            <!-- Grille de Post-its colorés -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              ${cards.map(c => {
+                const cardCol = c.color || '#f59e0b';
+                return `
+                  <div class="theme-card p-4 border shadow-sm flex flex-col justify-between gap-2"
+                       style="background-color: ${this.hexToRgba(cardCol, 0.12)}; border-top: 5px solid ${cardCol};">
+                    <div class="space-y-2">
+                      <div class="flex items-center justify-between gap-2">
+                        <input type="text" value="${this.escapeAttr(c.category)}"
+                               onchange="app.updateBrainstormCard('${c.id}', 'category', this.value)"
+                               style="background-color: ${cardCol}; color: #fff;"
+                               class="text-[10px] font-bold uppercase px-2 py-0.5 rounded w-32">
+                        <div class="flex items-center gap-1">
+                          <input type="color" value="${cardCol}"
+                                 onchange="app.updateBrainstormCard('${c.id}', 'color', this.value); app.renderViewport();"
+                                 class="w-4 h-4 border-0 p-0 bg-transparent cursor-pointer" title="Couleur du post-it">
+                          <button onclick="app.deleteBrainstormCard('${c.id}')" class="text-stone-400 hover:text-rose-600">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <input type="text" value="${this.escapeAttr(c.title)}"
+                             onchange="app.updateBrainstormCard('${c.id}', 'title', this.value)"
+                             placeholder="Titre de l'idée..."
+                             class="w-full font-serif-title font-bold text-sm text-stone-900 bg-transparent focus:outline-none">
+                      <textarea onchange="app.updateBrainstormCard('${c.id}', 'text', this.value)" rows="4"
+                                placeholder="Détails..."
+                                class="w-full text-xs text-stone-700 bg-white/70 p-2 rounded-lg border border-stone-200/80 focus:outline-none">${c.text || ''}</textarea>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      },
+
+      // --- SECTION SUPPORTS & MÉDIAS ---
+      renderMediaSection(targetType, seqId, seaId, medias) {
+        return `
+          <div class="theme-card p-5 border shadow-sm space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
+                <i data-lucide="image" class="w-4 h-4 text-amber-700"></i>
+                Supports Visuels, Diaporamas & Vidéos (En ligne ou Local)
+              </h3>
+              <div class="no-print flex items-center gap-2">
+                <button onclick="app.promptAddMedia('${targetType}', '${seqId}', '${seaId || ''}')"
+                        class="px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-white text-xs font-medium flex items-center gap-1">
+                  <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                  <span>+ Lien Web / Chemin</span>
+                </button>
+                <label class="px-2.5 py-1 rounded-lg theme-accent-btn text-xs font-medium flex items-center gap-1 cursor-pointer">
+                  <i data-lucide="folder-up" class="w-3.5 h-3.5"></i>
+                  <span>+ Fichier Local (Image/Diapo/Vidéo)</span>
+                  <input type="file" onchange="app.handleLocalMediaUpload(event, '${targetType}', '${seqId}', '${seaId || ''}')" class="hidden">
+                </label>
+              </div>
+            </div>
+
+            ${medias.length === 0 ? `
+              <p class="text-xs text-stone-400 italic">Aucun média attaché. Ajoutez une illustration, un diaporama, une vidéo ou un PDF.</p>
+            ` : `
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                ${medias.map(m => {
+                  const isImg = m.type === 'image' || (m.url && (m.url.startsWith('data:image') || /\.(jpg|jpeg|png|gif|webp)$/i.test(m.url)));
+                  const iconMap = { image: 'image', slides: 'presentation', video: 'video', doc: 'file-text' };
+                  const ic = iconMap[m.type] || 'external-link';
+                  return `
+                    <div class="group border border-stone-200 rounded-xl p-3 bg-stone-50/70 hover:bg-white hover:shadow-sm transition flex flex-col justify-between gap-2">
+                      <div class="space-y-2">
+                        ${isImg ? `
+                          <div onclick="app.openMediaModal('${this.escapeAttr(m.title)}', '${this.escapeAttr(m.url)}', 'image')"
+                               class="h-28 w-full rounded-lg bg-stone-200 overflow-hidden cursor-pointer relative">
+                            <img src="${m.url}" alt="${this.escapeAttr(m.title)}" class="w-full h-full object-cover group-hover:scale-105 transition">
+                          </div>
+                        ` : ''}
+                        <div class="flex items-start justify-between gap-2">
+                          <div class="flex items-center gap-1.5 min-w-0">
+                            <i data-lucide="${ic}" class="w-4 h-4 text-amber-700 shrink-0"></i>
+                            <span class="text-xs font-semibold text-stone-800 truncate" title="${this.escapeAttr(m.title)}">${m.title}</span>
+                          </div>
+                          <button onclick="app.removeMedia('${targetType}', '${seqId}', '${seaId || ''}', '${m.id}')" class="no-print text-stone-400 hover:text-rose-600">
+                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                          </button>
+                        </div>
+                        ${m.note ? `<p class="text-[11px] text-stone-500">${m.note}</p>` : ''}
+                      </div>
+                      <div class="pt-1 border-t border-stone-200/60 flex items-center justify-between text-[11px]">
+                        <span class="text-stone-400 truncate max-w-[160px]" title="${this.escapeAttr(m.url)}">${m.url.startsWith('data:') ? 'Image locale intégrée' : m.url}</span>
+                        ${m.url.startsWith('http') ? `
+                          <a href="${m.url}" target="_blank" class="text-amber-800 font-semibold hover:underline flex items-center gap-0.5">Ouvrir <i data-lucide="external-link" class="w-3 h-3"></i></a>
+                        ` : `
+                          <button onclick="app.openMediaModal('${this.escapeAttr(m.title)}', '${this.escapeAttr(m.url)}', '${m.type}')" class="text-amber-800 font-semibold hover:underline">Aperçu</button>
+                        `}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `}
+          </div>
+        `;
+      },
+
+      promptAddMedia(targetType, seqId, seaId) {
+        const title = prompt("Titre du support (ex: Vidéo BNF, Diaporama Séance 2, Illustration) :");
+        if (!title) return;
+        const url = prompt("Lien URL (https://...) ou chemin/nom du fichier local :");
+        if (!url) return;
+        const typeChoice = prompt("Type : 'image', 'slides' (diapo), 'video' ou 'doc' :", "image");
+        const note = prompt("Note ou consigne associée (optionnel) :", "");
+
+        this.pushMedia(targetType, seqId, seaId, {
+          id: 'med-' + Date.now(),
+          type: ['image', 'slides', 'video', 'doc'].includes(typeChoice) ? typeChoice : 'doc',
+          title,
+          url,
+          note
+        });
+      },
+
+      handleLocalMediaUpload(event, targetType, seqId, seaId) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const isImage = file.type.startsWith('image/');
+        const type = isImage ? 'image' : (file.type.includes('video') ? 'video' : (file.name.match(/\.(ppt|pptx|key|odp)$/i) ? 'slides' : 'doc'));
+
+        if (isImage && file.size < 3 * 1024 * 1024) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.pushMedia(targetType, seqId, seaId, {
+              id: 'med-' + Date.now(),
+              type: 'image',
+              title: file.name,
+              url: e.target.result,
+              note: "Image locale"
+            });
+          };
+          reader.readAsDataURL(file);
+        } else {
+          const objectUrl = URL.createObjectURL(file);
+          this.pushMedia(targetType, seqId, seaId, {
+            id: 'med-' + Date.now(),
+            type,
+            title: file.name,
+            url: objectUrl,
+            note: `Fichier local (${Math.round(file.size / 1024)} Ko)`
+          });
+        }
+      },
+
+      pushMedia(targetType, seqId, seaId, mediaObj) {
+        if (targetType === 'sequence') {
+          const seq = this.getSequence(seqId);
+          if (!seq.medias) seq.medias = [];
+          seq.medias.push(mediaObj);
+        } else {
+          const { sea } = this.getSeance(seqId, seaId);
+          if (!sea.medias) sea.medias = [];
+          sea.medias.push(mediaObj);
+        }
+        this.saveData();
+        this.renderViewport();
+      },
+
+      removeMedia(targetType, seqId, seaId, mediaId) {
+        if (targetType === 'sequence') {
+          const seq = this.getSequence(seqId);
+          seq.medias = (seq.medias || []).filter(m => m.id !== mediaId);
+        } else {
+          const { sea } = this.getSeance(seqId, seaId);
+          sea.medias = (sea.medias || []).filter(m => m.id !== mediaId);
+        }
+        this.saveData();
+        this.renderViewport();
+      },
+
+      openMediaModal(title, url, type) {
+        document.getElementById('modal-media-title').textContent = title;
+        const body = document.getElementById('modal-media-body');
+
+        if (type === 'image' || url.startsWith('data:image')) {
+          body.innerHTML = `<img src="${url}" class="max-h-[75vh] max-w-full rounded shadow">`;
+        } else if (type === 'video' && (url.startsWith('blob:') || url.endsWith('.mp4'))) {
+          body.innerHTML = `<video src="${url}" controls class="max-h-[75vh] max-w-full rounded"></video>`;
+        } else {
+          body.innerHTML = `
+            <div class="text-center space-y-3 p-6">
+              <p class="text-sm font-semibold text-stone-800">${title}</p>
+              <p class="text-xs text-stone-500 break-all">Référence : ${url}</p>
+              <a href="${url}" target="_blank" class="inline-block px-4 py-2 rounded theme-accent-btn text-xs font-medium">Ouvrir dans un nouvel onglet</a>
+            </div>
+          `;
+        }
+        this.openModal('media-modal');
+      },
+
+      // --- 4. VUE CALENDRIER & PROGRAMMATION (AVEC BOUTON DE RETOUR CLAIR) ---
+      renderCalendarView(viewport) {
+        const monthStr = this.data.settings.calendarMonth || "2026-10";
+        const [year, month] = monthStr.split('-').map(Number);
+        const firstDay = new Date(year, month - 1, 1);
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const startOffset = (firstDay.getDay() + 6) % 7;
+        const monthLabel = firstDay.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
+        const allSeances = [];
+        this.data.sequences.forEach(seq => {
+          seq.seances.forEach(sea => {
+            allSeances.push({ seq, sea });
+          });
+        });
+
+        let cellsHtml = '';
+        for (let i = 0; i < startOffset; i++) {
+          cellsHtml += `<div class="bg-stone-100/50 border border-stone-200/70 min-h-[105px] p-1.5"></div>`;
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dateIso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const daySeances = allSeances.filter(({ sea }) => {
+            if (!sea.dateDebut) return false;
+            const end = sea.dateFin || sea.dateDebut;
+            return dateIso >= sea.dateDebut && dateIso <= end;
+          });
+
+          cellsHtml += `
+            <div class="bg-white border border-stone-200 min-h-[105px] p-1.5 flex flex-col justify-between hover:border-amber-400 transition">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-stone-600">${day}</span>
+              </div>
+              <div class="space-y-1 my-1 flex-1">
+                ${daySeances.map(({ seq, sea }) => {
+                  const st = this.getDominanteStyle(sea.dominante);
+                  return `
+                    <div onclick="app.openTab({ id: 'tab-${sea.id}', type: 'seance', seqId: '${seq.id}', seaId: '${sea.id}' }, true)"
+                         style="background-color: ${st.bgActive}; border-left: 3px solid ${st.color}; color: #1c1917;"
+                         class="cursor-pointer px-1.5 py-1 rounded text-[10px] font-semibold truncate hover:brightness-95"
+                         title="${seq.code} • ${sea.titre} (${sea.dureePrevue || ''})">
+                      ${st.icon} ${sea.titre}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }
+
+        viewport.innerHTML = `
+          <div class="content-container mx-auto space-y-6 pb-20">
+            <!-- En-tête du Calendrier avec bouton Retour immédiat -->
+            <div class="theme-card p-5 border shadow-sm flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 class="font-serif-title text-xl font-bold text-stone-900 flex items-center gap-2">
+                  <i data-lucide="calendar-days" class="w-5 h-5" style="color: var(--accent)"></i>
+                  Calendrier & Tableau de Programmation
+                </h2>
+                <p class="text-xs text-stone-500">Cliquez sur une séance pour l'ouvrir, ou revenez à votre fiche en cours grâce au bouton à droite.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="app.shiftCalendarMonth(-1)" class="p-1.5 rounded-lg border border-stone-300 hover:bg-stone-100"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                <input type="month" value="${monthStr}" onchange="app.setCalendarMonth(this.value)" class="text-xs font-bold uppercase px-3 py-1.5 border border-stone-300 rounded-lg bg-stone-50">
+                <button onclick="app.shiftCalendarMonth(1)" class="p-1.5 rounded-lg border border-stone-300 hover:bg-stone-100"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                <button onclick="app.switchMainView('workspace')" class="ml-2 px-3 py-1.5 rounded-lg theme-accent-btn text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                  <span>Retour aux Projets & Séances</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Grille mensuelle -->
+            <div class="theme-card p-4 border shadow-sm">
+              <div class="text-center font-serif-title font-bold text-base capitalize mb-3" style="color: var(--accent)">${monthLabel}</div>
+              <div class="grid grid-cols-7 text-center text-[11px] font-bold uppercase text-stone-500 pb-2">
+                <div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div>
+              </div>
+              <div class="grid grid-cols-7">
+                ${cellsHtml}
+              </div>
+            </div>
+
+            <!-- Vue Tableau complet (fidèle au Google Sheet) -->
+            <div class="theme-card p-5 border shadow-sm space-y-3">
+              <h3 class="font-serif-title font-bold text-base text-stone-800">Vue Tableau Récapitulatif (Style Google Sheet)</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-stone-100 text-stone-600 border-y border-stone-200">
+                      <th class="py-2 px-2.5">PA</th>
+                      <th class="py-2 px-2.5">Titre de la séance</th>
+                      <th class="py-2 px-2.5">Date début</th>
+                      <th class="py-2 px-2.5">Date fin</th>
+                      <th class="py-2 px-2.5">Prévue / Réelle</th>
+                      <th class="py-2 px-2.5">Objectifs</th>
+                      <th class="py-2 px-2.5">À préparer / Supports</th>
+                      <th class="py-2 px-2.5">Devoirs</th>
+                      <th class="py-2 px-2.5">Notes (5A/5C)</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-stone-200">
+                    ${allSeances.map(({ seq, sea }) => {
+                      const st = this.getDominanteStyle(sea.dominante);
+                      return `
+                        <tr style="background-color: ${st.bgSoft};" class="hover:brightness-95 transition">
+                          <td class="py-2.5 px-2.5 font-bold whitespace-nowrap" style="border-left: 4px solid ${st.color}; color: ${st.color}">${seq.code}</td>
+                          <td class="py-2.5 px-2.5 font-semibold text-stone-900">
+                            <button onclick="app.openTab({ id: 'tab-${sea.id}', type: 'seance', seqId: '${seq.id}', seaId: '${sea.id}' }, true)" class="hover:underline text-left flex items-center gap-1.5">
+                              <span>${st.icon}</span>
+                              <span>${sea.titre}</span>
+                            </button>
+                          </td>
+                          <td class="py-2.5 px-2.5">
+                            <input type="date" value="${sea.dateDebut || ''}" onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'dateDebut', this.value); app.renderViewport();" class="bg-white/80 border border-stone-300 rounded px-1 py-0.5 text-[11px]">
+                          </td>
+                          <td class="py-2.5 px-2.5">
+                            <input type="date" value="${sea.dateFin || ''}" onchange="app.updateSeaField('${seq.id}', '${sea.id}', 'dateFin', this.value); app.renderViewport();" class="bg-white/80 border border-stone-300 rounded px-1 py-0.5 text-[11px]">
+                          </td>
+                          <td class="py-2.5 px-2.5 whitespace-nowrap">${sea.dureePrevue || '—'} / <span class="font-semibold">${sea.dureeReelle || '—'}</span></td>
+                          <td class="py-2.5 px-2.5 max-w-[200px] truncate" title="${this.escapeAttr(sea.objectifs)}">${sea.objectifs || '—'}</td>
+                          <td class="py-2.5 px-2.5 max-w-[180px] truncate" title="${this.escapeAttr(sea.supports)}">${sea.supports || '—'}</td>
+                          <td class="py-2.5 px-2.5 max-w-[180px] truncate" title="${this.escapeAttr(sea.devoirs)}">${sea.devoirs || '—'}</td>
+                          <td class="py-2.5 px-2.5 max-w-[200px] truncate text-stone-600" title="${this.escapeAttr(sea.notes)}">${sea.notes || '—'}</td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      setCalendarMonth(val) {
+        this.data.settings.calendarMonth = val;
+        this.saveData();
+        this.renderViewport();
+      },
+
+      shiftCalendarMonth(delta) {
+        const [y, m] = (this.data.settings.calendarMonth || "2026-10").split('-').map(Number);
+        const d = new Date(y, m - 1 + delta, 1);
+        this.data.settings.calendarMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        this.saveData();
+        this.renderViewport();
+      },
+
+      // --- PANNEAU LATÉRAL DROIT : BRAINSTORMING & MAILLAGE ---
+      setRightTab(tab) {
+        this.rightTab = tab;
+        const bBtn = document.getElementById('rtab-brainstorm');
+        const lBtn = document.getElementById('rtab-links');
+        if (tab === 'brainstorm') {
+          bBtn.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 bg-white text-stone-900 shadow-sm";
+          lBtn.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 text-stone-600 hover:text-stone-900";
+        } else {
+          lBtn.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 bg-white text-stone-900 shadow-sm";
+          bBtn.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 text-stone-600 hover:text-stone-900";
+        }
+        this.renderRightSidebar();
+      },
+
+      renderRightSidebar() {
+        const container = document.getElementById('right-sidebar-content');
+        if (!container) return;
+
+        if (this.rightTab === 'brainstorm') {
+          const cards = this.data.brainstorming?.cards || [];
+          container.innerHTML = `
+            <div class="theme-card p-3 border shadow-2xs space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-stone-600 flex items-center gap-1">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-600"></i> Notes rapides
+                </span>
+                <button onclick="app.switchMainView('brainstorm')" class="text-[10px] font-semibold underline" style="color: var(--accent)">Ouvrir en grand</button>
+              </div>
+              <div contenteditable="true"
+                   oninput="app.data.brainstorming.scratchpad = this.innerHTML; app.saveData();"
+                   class="text-xs leading-relaxed text-stone-700 bg-amber-50/40 p-2.5 rounded-lg border border-amber-200/70 min-h-[130px] focus:outline-none">${this.data.brainstorming?.scratchpad || ''}</div>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-stone-500">Post-its (${cards.length})</span>
+                <button onclick="app.addBrainstormCard()" class="px-2 py-1 rounded-lg theme-accent-btn text-[11px] font-medium flex items-center gap-1">
+                  <i data-lucide="plus" class="w-3 h-3"></i> Idée
+                </button>
+              </div>
+              <div class="space-y-2.5">
+                ${cards.map(c => {
+                  const col = c.color || '#f59e0b';
+                  return `
+                    <div class="theme-card p-3 border shadow-2xs space-y-1.5" style="border-left: 4px solid ${col}">
+                      <div class="flex items-center justify-between gap-1">
+                        <input type="text" value="${this.escapeAttr(c.category)}"
+                               onchange="app.updateBrainstormCard('${c.id}', 'category', this.value)"
+                               style="background-color: ${this.hexToRgba(col, 0.2)}; color: #1c1917;"
+                               class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded w-28">
+                        <div class="flex items-center gap-1">
+                          <input type="color" value="${col}" onchange="app.updateBrainstormCard('${c.id}', 'color', this.value); app.renderRightSidebar();" class="w-4 h-4 border-0 p-0 bg-transparent cursor-pointer">
+                          <button onclick="app.deleteBrainstormCard('${c.id}')" class="text-stone-400 hover:text-rose-600">
+                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <input type="text" value="${this.escapeAttr(c.title)}"
+                             onchange="app.updateBrainstormCard('${c.id}', 'title', this.value)"
+                             placeholder="Titre de l'idée..."
+                             class="w-full text-xs font-bold text-stone-800 bg-transparent focus:outline-none">
+                      <textarea onchange="app.updateBrainstormCard('${c.id}', 'text', this.value)" rows="2"
+                                placeholder="Détails de l'idée..."
+                                class="w-full text-xs text-stone-600 bg-stone-50 p-1.5 rounded border border-stone-200/70 focus:outline-none">${c.text || ''}</textarea>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        } else {
+          const activeTab = this.openTabs.find(t => t.id === this.activeTabId);
+          if (!activeTab || activeTab.type !== 'seance') {
+            container.innerHTML = `
+              <div class="p-4 text-center text-xs text-stone-500 theme-card border">
+                Ouvrez une fiche de <b>Séance</b> au centre pour gérer sa checklist de préparation et ses liens avec les autres séances.
+              </div>
+            `;
+          } else {
+            const { seq, sea } = this.getSeance(activeTab.seqId, activeTab.seaId);
+            if (!sea.checklist) sea.checklist = { supportsPrets: false, diapoPret: false, realisee: false };
+
+            const otherSeances = [];
+            this.data.sequences.forEach(s => {
+              s.seances.forEach(se => {
+                if (se.id !== sea.id) otherSeances.push({ seq: s, sea: se });
+              });
+            });
+
+            container.innerHTML = `
+              <div class="theme-card p-3.5 border shadow-2xs space-y-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-stone-500 block">État de préparation</span>
+                <label class="flex items-center gap-2 text-xs text-stone-700 cursor-pointer">
+                  <input type="checkbox" ${sea.checklist.supportsPrets ? 'checked' : ''}
+                         onchange="app.toggleChecklist('${seq.id}', '${sea.id}', 'supportsPrets', this.checked)" class="rounded">
+                  <span>Supports & polycopiés prêts</span>
+                </label>
+                <label class="flex items-center gap-2 text-xs text-stone-700 cursor-pointer">
+                  <input type="checkbox" ${sea.checklist.diapoPret ? 'checked' : ''}
+                         onchange="app.toggleChecklist('${seq.id}', '${sea.id}', 'diapoPret', this.checked)" class="rounded">
+                  <span>Diaporama / Médias prêts</span>
+                </label>
+                <label class="flex items-center gap-2 text-xs text-stone-700 cursor-pointer">
+                  <input type="checkbox" ${sea.checklist.realisee ? 'checked' : ''}
+                         onchange="app.toggleChecklist('${seq.id}', '${sea.id}', 'realisee', this.checked)" class="rounded">
+                  <span class="font-semibold text-emerald-800">Séance réalisée en classe</span>
+                </label>
+              </div>
+
+              <div class="theme-card p-3.5 border shadow-2xs space-y-2.5">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-stone-500 block">Séances liées (Arborescence croisée)</span>
+                <div class="space-y-1.5">
+                  ${(sea.liens || []).map(linkedId => {
+                    const found = this.findSeanceById(linkedId);
+                    if (!found) return '';
+                    const st = this.getDominanteStyle(found.sea.dominante);
+                    return `
+                      <div class="flex items-center justify-between gap-2 p-2 rounded-lg border text-xs"
+                           style="background-color: ${st.bgSoft}; border-color: ${st.borderSoft}">
+                        <button onclick="app.openTab({ id: 'tab-${found.sea.id}', type: 'seance', seqId: '${found.seq.id}', seaId: '${found.sea.id}' }, true)"
+                                class="text-left font-medium text-stone-900 hover:underline truncate flex-1">
+                          🔗 ${found.sea.titre}
+                        </button>
+                        <button onclick="app.removeLink('${seq.id}', '${sea.id}', '${linkedId}')" class="text-stone-400 hover:text-rose-600"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    `;
+                  }).join('') || `<p class="text-xs text-stone-400 italic">Aucune séance liée.</p>`}
+                </div>
+
+                <div class="pt-2 border-t border-stone-100">
+                  <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Lier une autre séance :</label>
+                  <select onchange="if(this.value) { app.addLink('${seq.id}', '${sea.id}', this.value); this.value=''; }"
+                          class="w-full text-xs bg-stone-50 border border-stone-300 rounded-lg p-1.5">
+                    <option value="">+ Choisir une séance...</option>
+                    ${otherSeances.map(({ seq: s, sea: se }) => `<option value="${se.id}">${s.code} — ${se.titre}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+            `;
+          }
+        }
+        lucide.createIcons();
+      },
+
+      // --- ACTIONS CRUD SUR PA, SÉANCES, BRAINSTORMING ---
+      getSequence(seqId) {
+        return this.data.sequences.find(s => s.id === seqId);
+      },
+
+      getSeance(seqId, seaId) {
+        const seq = this.getSequence(seqId);
+        if (!seq) return { seq: null, sea: null };
+        const sea = seq.seances.find(s => s.id === seaId);
+        return { seq, sea };
+      },
+
+      findSeanceById(seaId) {
+        for (const seq of this.data.sequences) {
+          const sea = seq.seances.find(s => s.id === seaId);
+          if (sea) return { seq, sea };
+        }
+        return null;
+      },
+
+      updateSeqField(seqId, field, value) {
+        const seq = this.getSequence(seqId);
+        if (!seq) return;
+        seq[field] = value;
+        this.saveData();
+        this.renderTree();
+        this.renderTabs();
+      },
+
+      updateSeaField(seqId, seaId, field, value) {
+        const { sea } = this.getSeance(seqId, seaId);
+        if (!sea) return;
+        sea[field] = value;
+        this.saveData();
+        this.renderTree();
+        this.renderTabs();
+      },
+
+      createSequence() {
+        const num = this.data.sequences.length + 1;
+        const newSeq = {
+          id: 'pa-' + Date.now(),
+          code: `PA ${num}`,
+          titre: `Nouveau Projet d'Apprentissage ${num}`,
+          entree: "Entrée littéraire...",
+          competencePrincipale: "Lecture",
+          dureePrevue: "Prévue : 3 semaines",
+          questionnement: "",
+          objectifGeneral: "",
+          corpus: "",
+          evaluationSommative: "",
+          competencesTravaillees: "",
+          medias: [],
+          seances: []
+        };
+        this.data.sequences.push(newSeq);
+        this.saveData();
+        this.openTab({ id: `tab-${newSeq.id}`, type: 'sequence', seqId: newSeq.id }, true);
+      },
+
+      deleteSequence(seqId) {
+        this.data.sequences = this.data.sequences.filter(s => s.id !== seqId);
+        this.openTabs = this.openTabs.filter(t => t.seqId !== seqId);
+        if (this.activeTabId === `tab-${seqId}`) {
+          this.activeTabId = this.openTabs[0]?.id || null;
+        }
+        this.saveData();
+        this.renderAll();
+      },
+
+      createSeance(seqId) {
+        const seq = this.getSequence(seqId);
+        if (!seq) return;
+        const num = seq.seances.length + 1;
+        const newSea = {
+          id: 'sea-' + Date.now(),
+          numero: `S${num}`,
+          titre: `S${num} - Nouvelle séance`,
+          dominante: "Lecture",
+          dateDebut: new Date().toISOString().slice(0, 10),
+          dateFin: new Date().toISOString().slice(0, 10),
+          dureePrevue: "1h",
+          dureeReelle: "",
+          objectifs: "",
+          competences: "",
+          miseEnOeuvre: "<h3>1. Mise en activité (10 min)</h3><p>Description...</p><h3>2. Analyse / Activité centrale (35 min)</h3><p>Description...</p><h3>3. Trace écrite (10 min)</h3><p>Synthèse...</p>",
+          vigilance: "",
+          supports: "",
+          devoirs: "",
+          notes: "",
+          liens: [],
+          medias: [],
+          checklist: { supportsPrets: false, diapoPret: false, realisee: false }
+        };
+        seq.seances.push(newSea);
+        this.saveData();
+        this.openTab({ id: `tab-${newSea.id}`, type: 'seance', seqId: seq.id, seaId: newSea.id }, true);
+      },
+
+      deleteSeance(seqId, seaId) {
+        const seq = this.getSequence(seqId);
+        if (!seq) return;
+        seq.seances = seq.seances.filter(s => s.id !== seaId);
+        this.openTabs = this.openTabs.filter(t => t.seaId !== seaId);
+        if (this.activeTabId === `tab-${seaId}`) {
+          this.activeTabId = `tab-${seqId}`;
+        }
+        this.saveData();
+        this.renderAll();
+      },
+
+      addBrainstormCard() {
+        if (!this.data.brainstorming.cards) this.data.brainstorming.cards = [];
+        this.data.brainstorming.cards.unshift({
+          id: 'idea-' + Date.now(),
+          category: 'Idée',
+          color: '#f59e0b',
+          title: 'Nouvelle piste pédagogique',
+          text: ''
+        });
+        this.saveData();
+        this.renderRightSidebar();
+        if (this.currentMainView === 'brainstorm') this.renderViewport();
+      },
+
+      updateBrainstormCard(id, field, val) {
+        const card = this.data.brainstorming.cards.find(c => c.id === id);
+        if (card) {
+          card[field] = val;
+          this.saveData();
+        }
+      },
+
+      deleteBrainstormCard(id) {
+        this.data.brainstorming.cards = this.data.brainstorming.cards.filter(c => c.id !== id);
+        this.saveData();
+        this.renderRightSidebar();
+        if (this.currentMainView === 'brainstorm') this.renderViewport();
+      },
+
+      toggleChecklist(seqId, seaId, key, val) {
+        const { sea } = this.getSeance(seqId, seaId);
+        if (!sea) return;
+        if (!sea.checklist) sea.checklist = {};
+        sea.checklist[key] = val;
+        this.saveData();
+      },
+
+      addLink(seqId, seaId, targetSeaId) {
+        const { sea } = this.getSeance(seqId, seaId);
+        if (!sea) return;
+        if (!sea.liens) sea.liens = [];
+        if (!sea.liens.includes(targetSeaId)) {
+          sea.liens.push(targetSeaId);
+          this.saveData();
+          this.renderRightSidebar();
+        }
+      },
+
+      removeLink(seqId, seaId, targetSeaId) {
+        const { sea } = this.getSeance(seqId, seaId);
+        if (!sea) return;
+        sea.liens = (sea.liens || []).filter(id => id !== targetSeaId);
+        this.saveData();
+        this.renderRightSidebar();
+      },
+
+      // --- EXPORT EN WORD (.DOC) MODIFIABLE ---
+      exportActiveToDoc() {
+        const activeTab = this.openTabs.find(t => t.id === this.activeTabId);
+        let docTitle = "Export_Programmation";
+        let bodyContent = "";
+
+        if (this.currentMainView === 'workspace' && activeTab && activeTab.type === 'sequence') {
+          const seq = this.getSequence(activeTab.seqId);
+          docTitle = `${seq.code}_${seq.titre}`;
+          bodyContent = `
+            <h1>${seq.code} — ${seq.titre}</h1>
+            <p><b>Entrée littéraire :</b> ${seq.entree || ''} | <b>Compétence principale :</b> ${seq.competencePrincipale || ''} | <b>Durée :</b> ${seq.dureePrevue || ''}</p>
+            <p><b>Questionnement :</b> <i>${seq.questionnement || ''}</i></p>
+            <h2>Objectif général</h2>
+            <p>${(seq.objectifGeneral || '').replace(/\n/g, '<br>')}</p>
+            <h2>Corpus</h2>
+            <p>${(seq.corpus || '').replace(/\n/g, '<br>')}</p>
+            <h2>Évaluation sommative</h2>
+            <p>${(seq.evaluationSommative || '').replace(/\n/g, '<br>')}</p>
+            <h2>Compétences travaillées</h2>
+            <p>${(seq.competencesTravaillees || '').replace(/\n/g, '<br>')}</p>
+          `;
+        } else if (this.currentMainView === 'workspace' && activeTab && activeTab.type === 'seance') {
+          const { seq, sea } = this.getSeance(activeTab.seqId, activeTab.seaId);
+          docTitle = sea.titre;
+          bodyContent = `
+            <p style="color:#78716c;"><b>${seq.code} — ${seq.titre}</b></p>
+            <h1>${sea.titre}</h1>
+            <p><b>Dominante :</b> ${sea.dominante} | <b>Dates :</b> ${sea.dateDebut || '—'} au ${sea.dateFin || '—'} | <b>Durée :</b> ${sea.dureePrevue || '—'}</p>
+            <h3>Objectifs</h3>
+            <p>${(sea.objectifs || '').replace(/\n/g, '<br>')}</p>
+            <h3>Compétences</h3>
+            <p>${(sea.competences || '').replace(/\n/g, '<br>')}</p>
+            <h3>Mise en œuvre / Déroulement</h3>
+            <div>${sea.miseEnOeuvre || ''}</div>
+            <h3>Points de vigilance / Adaptations & variantes</h3>
+            <p>${(sea.vigilance || '').replace(/\n/g, '<br>')}</p>
+            <h3>À préparer / Supports</h3>
+            <p>${(sea.supports || '').replace(/\n/g, '<br>')}</p>
+            <h3>Devoirs / Prolongement</h3>
+            <p>${(sea.devoirs || '').replace(/\n/g, '<br>')}</p>
+            <h3>Notes & Bilan (5A / 5C)</h3>
+            <p>${(sea.notes || '').replace(/\n/g, '<br>')}</p>
+          `;
+        } else {
+          docTitle = "Programmation_5eme";
+          bodyContent = document.getElementById('editor-viewport').innerHTML;
+        }
+
+        const htmlDoc = `
+          <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+          <head><meta charset='utf-8'><title>${docTitle}</title></head>
+          <body style="font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5;">${bodyContent}</body></html>
+        `;
+
+        const blob = new Blob(['\ufeff', htmlDoc], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${docTitle.replace(/[^a-z0-9àâçéèêëîïôûùüÿñæœ_-]/gi, '_')}.doc`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+
+      // --- SAUVEGARDE DIRECTE SUR LE DISQUE / DOSSIER GOOGLE DRIVE LOCAL ---
+      async syncToDiskFile() {
+        try {
+          if ('showSaveFilePicker' in window) {
+            if (!this.fileHandle) {
+              this.fileHandle = await window.showSaveFilePicker({
+                suggestedName: 'Programmation_5eme_Sauvegarde.json',
+                types: [{ description: 'Fichier JSON', accept: { 'application/json': ['.json'] } }]
+              });
+            }
+            const writable = await this.fileHandle.createWritable();
+            await writable.write(JSON.stringify(this.data, null, 2));
+            await writable.close();
+            document.getElementById('disk-file-label').textContent = `Synchronisé (${this.fileHandle.name})`;
+            document.getElementById('save-time').textContent = `Disque OK`;
+          } else {
+            this.exportJSON();
+          }
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            this.exportJSON();
+          }
+        }
+      },
+
+      exportJSON() {
+        const blob = new Blob([JSON.stringify(this.data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Programmation_5eme_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+
+      importJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const parsed = JSON.parse(e.target.result);
+            if (parsed && parsed.sequences) {
+              this.data = parsed;
+              if (!this.data.dominantes) this.data.dominantes = JSON.parse(JSON.stringify(DEFAULT_DOMINANTES));
+              this.saveData();
+              this.applyAppearanceToDOM();
+              this.renderAll();
+            }
+          } catch (err) {
+            console.error("Fichier JSON invalide", err);
+          }
+        };
+        reader.readAsText(file);
+      },
+
+      resetToGoogleSheetData() {
+        this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
+        this.saveData();
+        this.applyAppearanceToDOM();
+        this.openTabs = [];
+        this.openTab({ id: 'tab-pa-2', type: 'sequence', seqId: 'pa-2' }, false);
+        this.openTab({ id: 'tab-sea-c2-1', type: 'seance', seqId: 'pa-2', seaId: 'sea-c2-1' }, true);
+        this.renderAll();
+      },
+
+      setupKeyboardShortcuts() {
+        window.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            this.saveData();
+            if (this.fileHandle) this.syncToDiskFile();
+          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+            // Laisser le navigateur gérer l'undo natif si on est dans un champ texte, sinon undo applicatif
+            const activeEl = document.activeElement;
+            if (!activeEl || (!activeEl.isContentEditable && activeEl.tagName !== 'INPUT' && activeEl.tagName !== 'TEXTAREA')) {
+              e.preventDefault();
+              this.undo();
+            }
+          } else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+            const activeEl = document.activeElement;
+            if (!activeEl || (!activeEl.isContentEditable && activeEl.tagName !== 'INPUT' && activeEl.tagName !== 'TEXTAREA')) {
+              e.preventDefault();
+              this.redo();
+            }
+          }
+        });
+      },
+
+      formatDateShort(isoStr) {
+        if (!isoStr) return '';
+        const d = new Date(isoStr);
+        return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+      },
+
+      escapeAttr(str) {
+        return String(str || '').replace(/"/g, '&quot;');
+      },
+
+      renderAll() {
+        this.renderTree();
+        this.renderTabs();
+        this.renderViewport();
+        this.renderRightSidebar();
+        this.updateUndoRedoButtons();
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => app.init());
+  </script>
+</body>
+</html>
